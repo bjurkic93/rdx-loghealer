@@ -7,6 +7,7 @@ import org.hibernate.type.SqlTypes;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -43,7 +44,7 @@ public class AiAnalysis {
 
     @Column(name = "affected_files")
     @JdbcTypeCode(SqlTypes.JSON)
-    private String[] affectedFiles;
+    private List<String> affectedFiles;
 
     @Column(precision = 3, scale = 2)
     private BigDecimal confidence;
