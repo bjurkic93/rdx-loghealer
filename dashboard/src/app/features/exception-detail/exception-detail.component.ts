@@ -4,6 +4,7 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
 import { ExceptionGroup } from '../../core/models/exception.model';
 import { AiAnalysisResponse } from '../../core/models/ai.model';
+import { GitHubConnection, PullRequestResponse } from '../../core/models/github.model';
 
 @Component({
   selector: 'app-exception-detail',
@@ -26,11 +27,29 @@ export class ExceptionDetailComponent implements OnInit {
   aiError: string | null = null;
   selectedProvider: 'openai' | 'claude' = 'claude';
 
+  // GitHub Integration
+  githubConnection: GitHubConnection | null = null;
+  pullRequest: PullRequestResponse | null = null;
+  prLoading = false;
+  prError: string | null = null;
+
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.loadException(id);
     }
+    this.checkGitHubConnection();
+  }
+
+  checkGitHubConnection(): void {
+    this.apiService.getGitHubConnection('demo-project').subscribe({
+      next: (connection) => {
+        this.githubConnection = connection;
+      },
+      error: (err) => {
+        console.error('Failed to check GitHub connection', err);
+      }
+    });
   }
 
   loadException(id: string): void {
@@ -95,6 +114,38 @@ export class ExceptionDetailComponent implements OnInit {
   copyToClipboard(text: string): void {
     navigator.clipboard.writeText(text).then(() => {
       // Could show a toast notification here
+    });
+  }
+
+  // GitHub Integration
+  connectGitHub(): void {
+    this.apiService.getGitHubAuthUrl('demo-project').subscribe({
+      next: (response) => {
+        window.location.href = response.authorizationUrl;
+      },
+      error: (err) => {
+        console.error('Failed to get GitHub auth URL', err);
+      }
+    });
+  }
+
+  createPullRequest(): void {
+    if (!this.exception?.id) return;
+    
+    this.prLoading = true;
+    this.prError = null;
+
+    this.apiService.analyzeAndCreatePr(this.exception.id, 'demo-project', this.selectedProvider).subscribe({
+      next: (response) => {
+        this.aiAnalysis = response.analysis;
+        this.pullRequest = response.pullRequest;
+        this.prLoading = false;
+      },
+      error: (err) => {
+        this.prError = err.error?.message || 'Failed to create Pull Request. Make sure GitHub is connected.';
+        this.prLoading = false;
+        console.error('PR creation error:', err);
+      }
     });
   }
 }

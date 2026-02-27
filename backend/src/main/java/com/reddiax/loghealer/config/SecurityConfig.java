@@ -41,6 +41,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/exceptions/**").permitAll()
                 // AI Analysis endpoints - temporarily open for development
                 .requestMatchers("/api/v1/ai/**").permitAll()
+                // GitHub integration endpoints
+                .requestMatchers("/api/v1/github/**").permitAll()
                 // All other endpoints require authentication
                 .anyRequest().authenticated()
             )

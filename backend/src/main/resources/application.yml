@@ -86,3 +86,6 @@ loghealer:
     openai:
       api-key: ${OPENAI_API_KEY:}
       model: gpt-4o
+  github:
+    client-id: ${GITHUB_CLIENT_ID:}
+    client-secret: ${GITHUB_CLIENT_SECRET:}

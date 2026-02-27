@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                            http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
+
+    <changeSet id="001-create-github-connection-table" author="loghealer">
+        <createTable tableName="github_connection">
+            <column name="id" type="VARCHAR(36)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="project_id" type="VARCHAR(36)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="repository_full_name" type="VARCHAR(255)"/>
+            <column name="repository_default_branch" type="VARCHAR(100)"/>
+            <column name="access_token" type="VARCHAR(500)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="github_username" type="VARCHAR(100)"/>
+            <column name="is_active" type="BOOLEAN" defaultValueBoolean="true"/>
+            <column name="created_at" type="TIMESTAMP"/>
+            <column name="updated_at" type="TIMESTAMP"/>
+        </createTable>
+
+        <createIndex tableName="github_connection" indexName="idx_github_connection_project">
+            <column name="project_id"/>
+        </createIndex>
+
+        <createIndex tableName="github_connection" indexName="idx_github_connection_repo">
+            <column name="repository_full_name"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

@@ -6,6 +6,7 @@ import { DashboardStats } from '../models/dashboard.model';
 import { LogSearchRequest, LogSearchResponse } from '../models/log.model';
 import { ExceptionGroup } from '../models/exception.model';
 import { AiAnalysisResponse, AiProviders } from '../models/ai.model';
+import { GitHubConnection, PullRequestResponse } from '../models/github.model';
 
 @Injectable({
   providedIn: 'root'
@@ -82,5 +83,32 @@ export class ApiService {
 
   getAiProviders(): Observable<AiProviders> {
     return this.http.get<AiProviders>(`${this.baseUrl}/ai/providers`);
+  }
+
+  // GitHub Integration
+  getGitHubAuthUrl(projectId: string): Observable<{ authorizationUrl: string }> {
+    return this.http.get<{ authorizationUrl: string }>(`${this.baseUrl}/github/authorize/${projectId}`);
+  }
+
+  getGitHubConnection(projectId: string): Observable<GitHubConnection> {
+    return this.http.get<GitHubConnection>(`${this.baseUrl}/github/connection/${projectId}`);
+  }
+
+  connectRepository(connectionId: string, repositoryFullName: string): Observable<any> {
+    return this.http.post(`${this.baseUrl}/github/connect/${connectionId}`, { repositoryFullName });
+  }
+
+  createFixPullRequest(exceptionGroupId: string, projectId: string = 'demo-project', provider: 'openai' | 'claude' = 'claude'): Observable<PullRequestResponse> {
+    const params = new HttpParams()
+      .set('projectId', projectId)
+      .set('provider', provider);
+    return this.http.post<PullRequestResponse>(`${this.baseUrl}/github/create-pr/${exceptionGroupId}`, null, { params });
+  }
+
+  analyzeAndCreatePr(exceptionGroupId: string, projectId: string = 'demo-project', provider: 'openai' | 'claude' = 'claude'): Observable<{ analysis: AiAnalysisResponse; pullRequest: PullRequestResponse }> {
+    const params = new HttpParams()
+      .set('projectId', projectId)
+      .set('provider', provider);
+    return this.http.post<{ analysis: AiAnalysisResponse; pullRequest: PullRequestResponse }>(`${this.baseUrl}/github/analyze-and-pr/${exceptionGroupId}`, null, { params });
   }
 }

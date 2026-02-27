@@ -431,3 +431,72 @@
     font-weight: 500;
   }
 }
+
+// GitHub Integration
+.btn-github {
+  background: #238636;
+  color: white;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  &:hover:not(:disabled) {
+    background: #2ea043;
+  }
+
+  .github-icon {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.btn-github-connect {
+  background: #21262d;
+  color: #c9d1d9;
+  border: 1px solid #30363d;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+
+  &:hover:not(:disabled) {
+    background: #30363d;
+    border-color: #8b949e;
+  }
+
+  .github-icon {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+.pr-success {
+  background: rgba(35, 134, 54, 0.15);
+  border: 1px solid #238636;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 16px;
+
+  h3 {
+    color: #3fb950;
+    font-size: 16px;
+    margin: 0 0 8px 0;
+  }
+
+  p {
+    color: #c9d1d9;
+    margin: 0 0 12px 0;
+  }
+
+  .pr-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: #58a6ff;
+    text-decoration: none;
+    font-weight: 500;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
