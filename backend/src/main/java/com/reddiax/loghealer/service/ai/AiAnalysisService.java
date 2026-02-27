@@ -83,13 +83,13 @@ public class AiAnalysisService {
         prompt.append("## Exception Details\n");
         prompt.append("- **Type**: ").append(exception.getExceptionClass()).append("\n");
         prompt.append("- **Message**: ").append(exception.getMessage()).append("\n");
-        prompt.append("- **Occurrences**: ").append(exception.getOccurrenceCount()).append("\n");
+        prompt.append("- **Occurrences**: ").append(exception.getCount()).append("\n");
         prompt.append("- **First Seen**: ").append(exception.getFirstSeen()).append("\n");
         prompt.append("- **Last Seen**: ").append(exception.getLastSeen()).append("\n");
         
-        if (exception.getStackTrace() != null) {
+        if (exception.getSampleStackTrace() != null) {
             prompt.append("\n## Stack Trace\n```\n");
-            prompt.append(exception.getStackTrace());
+            prompt.append(exception.getSampleStackTrace());
             prompt.append("\n```\n");
         }
 
