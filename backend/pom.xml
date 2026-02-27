@@ -100,21 +100,7 @@
             <version>2.3.0</version>
         </dependency>
 
-        <!-- AI - OpenAI -->
-        <dependency>
-            <groupId>com.theokanning.openai-gpt3-java</groupId>
-            <artifactId>service</artifactId>
-            <version>0.18.2</version>
-        </dependency>
-
-        <!-- AI - Anthropic Claude -->
-        <dependency>
-            <groupId>com.anthropic</groupId>
-            <artifactId>anthropic-java</artifactId>
-            <version>0.1.0-alpha.1</version>
-        </dependency>
-
-        <!-- WebClient for API calls -->
+        <!-- WebClient for AI API calls (OpenAI + Anthropic) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webflux</artifactId>

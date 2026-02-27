@@ -133,14 +133,14 @@
           @if (aiAnalysis.performanceInsight?.isPerformanceRelated) {
             <div class="analysis-card performance-card">
               <h3>Performance Insight</h3>
-              @if (aiAnalysis.performanceInsight.bottleneck) {
-                <p><strong>Bottleneck:</strong> {{ aiAnalysis.performanceInsight.bottleneck }}</p>
+              @if (aiAnalysis.performanceInsight?.bottleneck) {
+                <p><strong>Bottleneck:</strong> {{ aiAnalysis.performanceInsight?.bottleneck }}</p>
               }
-              @if (aiAnalysis.performanceInsight.optimization) {
-                <p><strong>Optimization:</strong> {{ aiAnalysis.performanceInsight.optimization }}</p>
+              @if (aiAnalysis.performanceInsight?.optimization) {
+                <p><strong>Optimization:</strong> {{ aiAnalysis.performanceInsight?.optimization }}</p>
               }
-              @if (aiAnalysis.performanceInsight.estimatedImprovement) {
-                <p class="improvement">Expected improvement: {{ aiAnalysis.performanceInsight.estimatedImprovement }}</p>
+              @if (aiAnalysis.performanceInsight?.estimatedImprovement) {
+                <p class="improvement">Expected improvement: {{ aiAnalysis.performanceInsight?.estimatedImprovement }}</p>
               }
             </div>
           }
