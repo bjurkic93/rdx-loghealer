@@ -12,6 +12,14 @@
     <name>LogHealer Client</name>
     <description>Logback appender for sending logs to LogHealer platform</description>
 
+    <distributionManagement>
+        <repository>
+            <id>github</id>
+            <name>GitHub bjurkic93 Apache Maven Packages</name>
+            <url>https://maven.pkg.github.com/bjurkic93/rdx-loghealer</url>
+        </repository>
+    </distributionManagement>
+
     <properties>
         <java.version>17</java.version>
         <maven.compiler.source>17</maven.compiler.source>
