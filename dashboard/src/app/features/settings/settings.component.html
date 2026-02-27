@@ -1,0 +1,155 @@
+<div class="settings-page">
+  <h1>Settings</h1>
+
+  <!-- GitHub Integration -->
+  <div class="settings-section card">
+    <div class="section-header">
+      <div class="section-title">
+        <svg viewBox="0 0 24 24" fill="currentColor" class="github-logo">
+          <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+        </svg>
+        <h2>GitHub Integration</h2>
+      </div>
+      <p class="section-description">Connect your GitHub repository to enable automatic Pull Request creation for AI-suggested fixes.</p>
+    </div>
+
+    @if (githubLoading) {
+      <div class="loading-state">
+        <span class="spinner"></span>
+        <span>Loading...</span>
+      </div>
+    } @else if (githubError) {
+      <div class="error-message">{{ githubError }}</div>
+    } @else if (githubConnection?.connected) {
+      <!-- Connected State -->
+      <div class="connection-status connected">
+        <div class="status-indicator">
+          <span class="status-dot connected"></span>
+          <span class="status-text">Connected</span>
+        </div>
+      </div>
+
+      <div class="connection-details">
+        <div class="detail-item">
+          <span class="detail-label">GitHub Username</span>
+          <span class="detail-value">
+            <svg viewBox="0 0 24 24" fill="currentColor" class="icon-small">
+              <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+            </svg>
+            {{ githubConnection?.githubUsername || 'N/A' }}
+          </span>
+        </div>
+        <div class="detail-item">
+          <span class="detail-label">Repository</span>
+          <span class="detail-value">
+            <svg viewBox="0 0 24 24" fill="currentColor" class="icon-small">
+              <path d="M4 6H2v14c0 1.1.9 2 2 2h14v-2H4V6zm16-4H8c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-1 9H9V9h10v2zm-4 4H9v-2h6v2zm4-8H9V5h10v2z"/>
+            </svg>
+            {{ githubConnection?.repositoryFullName || 'Not selected' }}
+          </span>
+        </div>
+      </div>
+
+      <div class="connection-actions">
+        <button class="btn btn-secondary" (click)="disconnectGitHub()">
+          Disconnect GitHub
+        </button>
+      </div>
+    } @else {
+      <!-- Not Connected State -->
+      <div class="connection-status disconnected">
+        <div class="status-indicator">
+          <span class="status-dot disconnected"></span>
+          <span class="status-text">Not Connected</span>
+        </div>
+      </div>
+
+      <div class="connect-prompt">
+        <p>Connect your GitHub account to:</p>
+        <ul class="features-list">
+          <li>
+            <svg viewBox="0 0 24 24" fill="currentColor" class="check-icon">
+              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+            </svg>
+            Automatically create Pull Requests with AI-generated fixes
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" fill="currentColor" class="check-icon">
+              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+            </svg>
+            Link exceptions to specific commits and branches
+          </li>
+          <li>
+            <svg viewBox="0 0 24 24" fill="currentColor" class="check-icon">
+              <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+            </svg>
+            Track fix progress directly from the dashboard
+          </li>
+        </ul>
+      </div>
+
+      <div class="connection-actions">
+        <button class="btn btn-github" (click)="connectGitHub()" [disabled]="githubLoading">
+          <svg viewBox="0 0 24 24" fill="currentColor" class="btn-icon">
+            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+          </svg>
+          Connect GitHub Account
+        </button>
+      </div>
+    }
+  </div>
+
+  <!-- AI Provider Settings -->
+  <div class="settings-section card">
+    <div class="section-header">
+      <div class="section-title">
+        <svg viewBox="0 0 24 24" fill="none" class="ai-logo">
+          <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        <h2>AI Analysis</h2>
+      </div>
+      <p class="section-description">Configure AI providers for exception analysis.</p>
+    </div>
+
+    <div class="provider-list">
+      <div class="provider-item">
+        <div class="provider-info">
+          <span class="provider-name">Claude (Anthropic)</span>
+          <span class="provider-model">claude-sonnet-4-20250514</span>
+        </div>
+        <span class="provider-status active">Active</span>
+      </div>
+      <div class="provider-item">
+        <div class="provider-info">
+          <span class="provider-name">GPT-4o (OpenAI)</span>
+          <span class="provider-model">gpt-4o</span>
+        </div>
+        <span class="provider-status active">Active</span>
+      </div>
+    </div>
+
+    <p class="settings-note">
+      AI provider API keys are configured on the server. Contact your administrator to change providers.
+    </p>
+  </div>
+
+  <!-- Project Info -->
+  <div class="settings-section card">
+    <div class="section-header">
+      <div class="section-title">
+        <svg viewBox="0 0 24 24" fill="none" class="project-logo">
+          <path d="M3 3h18v18H3V3z" stroke="currentColor" stroke-width="2"/>
+          <path d="M9 9h6v6H9V9z" stroke="currentColor" stroke-width="2"/>
+        </svg>
+        <h2>Project</h2>
+      </div>
+    </div>
+
+    <div class="connection-details">
+      <div class="detail-item">
+        <span class="detail-label">Project ID</span>
+        <code class="detail-value code">{{ projectId }}</code>
+      </div>
+    </div>
+  </div>
+</div>

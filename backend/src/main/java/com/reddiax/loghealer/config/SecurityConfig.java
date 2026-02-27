@@ -68,6 +68,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
         configuration.setAllowedOrigins(List.of(
+            "http://localhost:4200",
             "http://localhost:4206",
             "http://localhost:4220",
             "https://loghealer.reddia-x.com"

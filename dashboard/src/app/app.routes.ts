@@ -21,5 +21,9 @@ export const routes: Routes = [
   {
     path: 'exceptions/:id',
     loadComponent: () => import('./features/exception-detail/exception-detail.component').then(m => m.ExceptionDetailComponent)
+  },
+  {
+    path: 'settings',
+    loadComponent: () => import('./features/settings/settings.component').then(m => m.SettingsComponent)
   }
 ];
