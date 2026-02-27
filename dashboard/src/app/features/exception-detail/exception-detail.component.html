@@ -43,6 +43,111 @@
       <pre class="stack-trace">{{ exception.sampleStackTrace }}</pre>
     </div>
 
+    <!-- AI Analysis Section -->
+    <div class="ai-analysis-section card">
+      <div class="ai-header">
+        <h2>
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="ai-icon">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+          AI Analysis
+        </h2>
+        <div class="ai-actions">
+          <button class="btn btn-primary" (click)="analyzeWithAi('claude')" [disabled]="aiLoading">
+            @if (aiLoading && selectedProvider === 'claude') {
+              <span class="spinner"></span> Analyzing...
+            } @else {
+              Analyze with Claude
+            }
+          </button>
+          <button class="btn btn-secondary" (click)="analyzeWithAi('openai')" [disabled]="aiLoading">
+            @if (aiLoading && selectedProvider === 'openai') {
+              <span class="spinner"></span> Analyzing...
+            } @else {
+              Analyze with GPT-4o
+            }
+          </button>
+        </div>
+      </div>
+
+      @if (aiError) {
+        <div class="ai-error">{{ aiError }}</div>
+      }
+
+      @if (aiAnalysis) {
+        <div class="ai-results">
+          <div class="ai-meta">
+            <span class="provider-badge">{{ aiAnalysis.provider }} / {{ aiAnalysis.model }}</span>
+            <span class="processing-time">{{ aiAnalysis.processingTimeMs }}ms</span>
+            <span class="tokens-used">{{ aiAnalysis.tokensUsed }} tokens</span>
+          </div>
+
+          <div class="analysis-card severity-card" [ngClass]="getSeverityClass(aiAnalysis.severity)">
+            <h3>Severity: {{ aiAnalysis.severity }}</h3>
+          </div>
+
+          <div class="analysis-card">
+            <h3>Root Cause</h3>
+            <p>{{ aiAnalysis.rootCause }}</p>
+          </div>
+
+          @if (aiAnalysis.impact) {
+            <div class="analysis-card">
+              <h3>Impact</h3>
+              <p>{{ aiAnalysis.impact }}</p>
+            </div>
+          }
+
+          @if (aiAnalysis.suggestedFix) {
+            <div class="analysis-card fix-card">
+              <div class="fix-header">
+                <h3>Suggested Fix</h3>
+                <span class="confidence">Confidence: {{ getConfidencePercent(aiAnalysis.suggestedFix.confidence) }}</span>
+              </div>
+              <p class="fix-description">{{ aiAnalysis.suggestedFix.description }}</p>
+              @if (aiAnalysis.suggestedFix.codeSnippet) {
+                <div class="code-block">
+                  <div class="code-header">
+                    <span class="language">{{ aiAnalysis.suggestedFix.language }}</span>
+                    <button class="copy-btn" (click)="copyToClipboard(aiAnalysis.suggestedFix.codeSnippet)">
+                      Copy
+                    </button>
+                  </div>
+                  <pre><code>{{ aiAnalysis.suggestedFix.codeSnippet }}</code></pre>
+                </div>
+              }
+            </div>
+          }
+
+          @if (aiAnalysis.preventionTips?.length) {
+            <div class="analysis-card">
+              <h3>Prevention Tips</h3>
+              <ul class="tips-list">
+                @for (tip of aiAnalysis.preventionTips; track tip) {
+                  <li>{{ tip }}</li>
+                }
+              </ul>
+            </div>
+          }
+
+          @if (aiAnalysis.performanceInsight?.isPerformanceRelated) {
+            <div class="analysis-card performance-card">
+              <h3>Performance Insight</h3>
+              @if (aiAnalysis.performanceInsight.bottleneck) {
+                <p><strong>Bottleneck:</strong> {{ aiAnalysis.performanceInsight.bottleneck }}</p>
+              }
+              @if (aiAnalysis.performanceInsight.optimization) {
+                <p><strong>Optimization:</strong> {{ aiAnalysis.performanceInsight.optimization }}</p>
+              }
+              @if (aiAnalysis.performanceInsight.estimatedImprovement) {
+                <p class="improvement">Expected improvement: {{ aiAnalysis.performanceInsight.estimatedImprovement }}</p>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+
     <div class="info-section card">
       <h2>Details</h2>
       <div class="info-grid">

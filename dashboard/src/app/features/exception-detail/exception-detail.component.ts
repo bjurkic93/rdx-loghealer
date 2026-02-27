@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
 import { ExceptionGroup } from '../../core/models/exception.model';
+import { AiAnalysisResponse } from '../../core/models/ai.model';
 
 @Component({
   selector: 'app-exception-detail',
@@ -18,6 +19,12 @@ export class ExceptionDetailComponent implements OnInit {
   exception: ExceptionGroup | null = null;
   loading = true;
   error: string | null = null;
+  
+  // AI Analysis
+  aiAnalysis: AiAnalysisResponse | null = null;
+  aiLoading = false;
+  aiError: string | null = null;
+  selectedProvider: 'openai' | 'claude' = 'claude';
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -54,5 +61,40 @@ export class ExceptionDetailComponent implements OnInit {
     } catch {
       return ts;
     }
+  }
+
+  // AI Analysis methods
+  analyzeWithAi(provider: 'openai' | 'claude' = 'claude'): void {
+    if (!this.exception?.id) return;
+    
+    this.selectedProvider = provider;
+    this.aiLoading = true;
+    this.aiError = null;
+
+    this.apiService.analyzeException(this.exception.id, provider, true).subscribe({
+      next: (response) => {
+        this.aiAnalysis = response;
+        this.aiLoading = false;
+      },
+      error: (err) => {
+        this.aiError = 'AI analysis failed. Please check API keys configuration.';
+        this.aiLoading = false;
+        console.error('AI analysis error:', err);
+      }
+    });
+  }
+
+  getSeverityClass(severity: string): string {
+    return `severity-${severity?.toLowerCase() || 'medium'}`;
+  }
+
+  getConfidencePercent(confidence: number): string {
+    return `${Math.round((confidence || 0) * 100)}%`;
+  }
+
+  copyToClipboard(text: string): void {
+    navigator.clipboard.writeText(text).then(() => {
+      // Could show a toast notification here
+    });
   }
 }

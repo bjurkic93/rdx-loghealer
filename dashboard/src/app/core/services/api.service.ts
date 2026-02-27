@@ -5,6 +5,7 @@ import { environment } from '../../../environments/environment';
 import { DashboardStats } from '../models/dashboard.model';
 import { LogSearchRequest, LogSearchResponse } from '../models/log.model';
 import { ExceptionGroup } from '../models/exception.model';
+import { AiAnalysisResponse, AiProviders } from '../models/ai.model';
 
 @Injectable({
   providedIn: 'root'
@@ -61,5 +62,25 @@ export class ApiService {
 
   getHealth(): Observable<Record<string, string>> {
     return this.http.get<Record<string, string>>(`${this.baseUrl}/health`);
+  }
+
+  // AI Analysis endpoints
+  analyzeException(exceptionGroupId: string, provider: 'openai' | 'claude' = 'claude', generateFix = true): Observable<AiAnalysisResponse> {
+    const params = new HttpParams()
+      .set('provider', provider)
+      .set('generateFix', String(generateFix));
+    return this.http.post<AiAnalysisResponse>(`${this.baseUrl}/ai/analyze/${exceptionGroupId}`, null, { params });
+  }
+
+  quickAnalyze(exceptionClass: string, message: string, stackTrace?: string): Observable<AiAnalysisResponse> {
+    return this.http.post<AiAnalysisResponse>(`${this.baseUrl}/ai/quick-analyze`, {
+      exceptionClass,
+      message,
+      stackTrace
+    });
+  }
+
+  getAiProviders(): Observable<AiProviders> {
+    return this.http.get<AiProviders>(`${this.baseUrl}/ai/providers`);
   }
 }

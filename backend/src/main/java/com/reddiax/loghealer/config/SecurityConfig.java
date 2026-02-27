@@ -39,6 +39,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/dashboard/**").permitAll()
                 .requestMatchers("/api/v1/logs/search").permitAll()
                 .requestMatchers("/api/v1/exceptions/**").permitAll()
+                // AI Analysis endpoints - temporarily open for development
+                .requestMatchers("/api/v1/ai/**").permitAll()
                 // All other endpoints require authentication
                 .anyRequest().authenticated()
             )
