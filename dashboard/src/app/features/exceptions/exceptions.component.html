@@ -1,0 +1,62 @@
+<div class="exceptions-page">
+  <header class="page-header">
+    <h1>Exceptions</h1>
+  </header>
+
+  <div class="filters">
+    <button 
+      class="status-btn" 
+      [class.active]="selectedStatus === null"
+      (click)="filterByStatus(null)">
+      All
+    </button>
+    @for (status of statuses; track status) {
+      <button 
+        class="status-btn"
+        [class.active]="selectedStatus === status"
+        [ngClass]="getStatusClass(status)"
+        (click)="filterByStatus(status)">
+        {{ status.replace('_', ' ') }}
+      </button>
+    }
+  </div>
+
+  @if (loading) {
+    <div class="loading">Loading exceptions...</div>
+  } @else if (error) {
+    <div class="error-message">{{ error }}</div>
+  } @else {
+    <div class="exceptions-list">
+      @for (exc of exceptions; track exc.id) {
+        <a [routerLink]="['/exceptions', exc.id]" class="exception-card">
+          <div class="exception-header">
+            <span class="badge" [ngClass]="getStatusClass(exc.status)">{{ exc.status }}</span>
+            <span class="count">{{ exc.count }} occurrences</span>
+          </div>
+          
+          <div class="exception-class">{{ exc.exceptionClass }}</div>
+          <div class="exception-message">{{ exc.message }}</div>
+          
+          <div class="exception-meta">
+            <div class="meta-item">
+              <span class="meta-label">First seen:</span>
+              <span class="meta-value">{{ getTimeAgo(exc.firstSeen) }}</span>
+            </div>
+            <div class="meta-item">
+              <span class="meta-label">Last seen:</span>
+              <span class="meta-value">{{ getTimeAgo(exc.lastSeen) }}</span>
+            </div>
+            @if (exc.environment) {
+              <div class="meta-item">
+                <span class="meta-label">Env:</span>
+                <span class="meta-value">{{ exc.environment }}</span>
+              </div>
+            }
+          </div>
+        </a>
+      } @empty {
+        <div class="no-data">No exceptions found</div>
+      }
+    </div>
+  }
+</div>

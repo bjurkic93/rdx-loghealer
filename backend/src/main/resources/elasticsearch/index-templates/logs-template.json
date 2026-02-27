@@ -1,0 +1,39 @@
+{
+  "index_patterns": ["logs-*"],
+  "template": {
+    "settings": {
+      "number_of_shards": 3,
+      "number_of_replicas": 1,
+      "index.lifecycle.name": "logs-policy",
+      "index.lifecycle.rollover_alias": "logs",
+      "refresh_interval": "5s"
+    },
+    "mappings": {
+      "properties": {
+        "id": { "type": "keyword" },
+        "projectId": { "type": "keyword" },
+        "tenantId": { "type": "keyword" },
+        "level": { "type": "keyword" },
+        "logger": { "type": "keyword" },
+        "message": {
+          "type": "text",
+          "analyzer": "standard",
+          "fields": {
+            "keyword": { "type": "keyword", "ignore_above": 256 }
+          }
+        },
+        "stackTrace": { "type": "text" },
+        "exceptionClass": { "type": "keyword" },
+        "fingerprint": { "type": "keyword" },
+        "threadName": { "type": "keyword" },
+        "metadata": { "type": "flattened" },
+        "timestamp": { "type": "date", "format": "epoch_millis||strict_date_optional_time" },
+        "traceId": { "type": "keyword" },
+        "spanId": { "type": "keyword" },
+        "hostName": { "type": "keyword" },
+        "environment": { "type": "keyword" }
+      }
+    }
+  },
+  "priority": 100
+}

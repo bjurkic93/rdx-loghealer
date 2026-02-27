@@ -1,0 +1,103 @@
+<div class="dashboard">
+  <header class="dashboard-header">
+    <h1>Dashboard</h1>
+    <div class="time-range-selector">
+      @for (range of timeRanges; track range.value) {
+        <button 
+          class="time-btn" 
+          [class.active]="selectedTimeRange === range.value"
+          (click)="onTimeRangeChange(range.value)">
+          {{ range.label }}
+        </button>
+      }
+    </div>
+  </header>
+
+  @if (loading) {
+    <div class="loading">Loading...</div>
+  } @else if (error) {
+    <div class="error-message">{{ error }}</div>
+  } @else if (stats) {
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value">{{ stats.totalLogs | number }}</div>
+        <div class="stat-label">Total Logs</div>
+      </div>
+      <div class="stat-card error">
+        <div class="stat-value">{{ stats.totalErrors | number }}</div>
+        <div class="stat-label">Errors</div>
+      </div>
+      <div class="stat-card warn">
+        <div class="stat-value">{{ stats.totalWarnings | number }}</div>
+        <div class="stat-label">Warnings</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value">{{ stats.totalExceptionGroups | number }}</div>
+        <div class="stat-label">Exception Groups</div>
+      </div>
+      <div class="stat-card new-exc">
+        <div class="stat-value">{{ stats.newExceptions | number }}</div>
+        <div class="stat-label">New Exceptions</div>
+      </div>
+      <div class="stat-card resolved">
+        <div class="stat-value">{{ stats.resolvedExceptions | number }}</div>
+        <div class="stat-label">Resolved</div>
+      </div>
+    </div>
+
+    <div class="charts-row">
+      <div class="card chart-card">
+        <h3>Logs by Level</h3>
+        <div class="chart-container">
+          @if (stats.logsByLevel.length > 0) {
+            <canvas baseChart
+              [data]="pieChartData"
+              [options]="pieChartOptions"
+              type="doughnut">
+            </canvas>
+          } @else {
+            <div class="no-data">No data available</div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="card exceptions-card">
+      <div class="card-header">
+        <h3>Top Exceptions</h3>
+        <a routerLink="/exceptions" class="view-all">View all</a>
+      </div>
+      
+      @if (stats.topExceptions.length > 0) {
+        <div class="exceptions-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Exception</th>
+                <th>Message</th>
+                <th>Count</th>
+                <th>Last Seen</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (exc of stats.topExceptions; track exc.exceptionClass + exc.message) {
+                <tr>
+                  <td class="exception-class">{{ exc.exceptionClass }}</td>
+                  <td class="exception-message">{{ exc.message }}</td>
+                  <td class="exception-count">{{ exc.count | number }}</td>
+                  <td class="exception-time">{{ formatTimestamp(exc.lastSeen) }}</td>
+                  <td>
+                    <span class="badge" [ngClass]="getStatusClass(exc.status)">{{ exc.status }}</span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <div class="no-data">No exceptions found</div>
+      }
+    </div>
+  }
+</div>

@@ -1,0 +1,151 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+  background: #0f1419;
+  color: #c9d1d9;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #161b22;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #30363d;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #484f58;
+}
+
+.card {
+  background: #161b22;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  padding: 20px;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px 16px;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  background: #21262d;
+  color: #c9d1d9;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: #30363d;
+    border-color: #484f58;
+  }
+
+  &.primary {
+    background: #238636;
+    border-color: #238636;
+    color: #fff;
+
+    &:hover {
+      background: #2ea043;
+      border-color: #2ea043;
+    }
+  }
+
+  &.danger {
+    background: #da3633;
+    border-color: #da3633;
+    color: #fff;
+
+    &:hover {
+      background: #f85149;
+    }
+  }
+}
+
+.input {
+  padding: 8px 12px;
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 6px;
+  color: #c9d1d9;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.15s ease;
+
+  &:focus {
+    border-color: #58a6ff;
+  }
+
+  &::placeholder {
+    color: #6e7681;
+  }
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+
+  &.error {
+    background: rgba(248, 81, 73, 0.15);
+    color: #f85149;
+  }
+
+  &.warn {
+    background: rgba(210, 153, 34, 0.15);
+    color: #d29922;
+  }
+
+  &.info {
+    background: rgba(56, 139, 253, 0.15);
+    color: #58a6ff;
+  }
+
+  &.debug {
+    background: rgba(139, 148, 158, 0.15);
+    color: #8b949e;
+  }
+
+  &.success {
+    background: rgba(35, 134, 54, 0.15);
+    color: #3fb950;
+  }
+
+  &.new {
+    background: rgba(248, 81, 73, 0.15);
+    color: #f85149;
+  }
+
+  &.in-progress {
+    background: rgba(210, 153, 34, 0.15);
+    color: #d29922;
+  }
+
+  &.resolved {
+    background: rgba(35, 134, 54, 0.15);
+    color: #3fb950;
+  }
+
+  &.ignored {
+    background: rgba(139, 148, 158, 0.15);
+    color: #8b949e;
+  }
+}

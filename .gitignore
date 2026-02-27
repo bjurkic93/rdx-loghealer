@@ -1,0 +1,26 @@
+# Backend
+backend/target/
+backend/.idea/
+backend/*.iml
+backend/.mvn/wrapper/maven-wrapper.jar
+
+# Dashboard
+dashboard/node_modules/
+dashboard/dist/
+dashboard/.angular/
+
+# IDE
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Env files
+.env
+*.env.local
+
+# Logs
+*.log

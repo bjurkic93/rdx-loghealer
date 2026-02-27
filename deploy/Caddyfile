@@ -1,0 +1,40 @@
+# LogHealer Production Caddy Configuration
+# Replace loghealer.reddia-x.com with your actual domain
+
+{$DOMAIN:loghealer.reddia-x.com} {
+    # Automatic HTTPS with Let's Encrypt
+    
+    # API routes -> backend
+    handle /api/* {
+        reverse_proxy backend:8090
+    }
+    
+    # Health check for backend
+    handle /actuator/health {
+        reverse_proxy backend:8090
+    }
+    
+    # Everything else -> dashboard (Angular)
+    handle {
+        reverse_proxy dashboard:80
+    }
+    
+    # Security headers
+    header {
+        X-Frame-Options "SAMEORIGIN"
+        X-Content-Type-Options "nosniff"
+        X-XSS-Protection "1; mode=block"
+        Referrer-Policy "strict-origin-when-cross-origin"
+    }
+    
+    # Logging
+    log {
+        output file /var/log/caddy/access.log
+        format json
+    }
+}
+
+# Health check endpoint for load balancer
+:8080 {
+    respond /health "OK" 200
+}

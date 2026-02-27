@@ -1,0 +1,96 @@
+<div class="logs-page">
+  <header class="page-header">
+    <h1>Logs</h1>
+    <span class="total-count">{{ totalHits | number }} total</span>
+  </header>
+
+  <div class="filters">
+    <div class="search-box">
+      <input 
+        type="text" 
+        class="input search-input" 
+        placeholder="Search logs..." 
+        [(ngModel)]="searchQuery"
+        (keyup.enter)="onSearch()">
+      <button class="btn primary" (click)="onSearch()">Search</button>
+    </div>
+    
+    <div class="level-filters">
+      @for (level of levels; track level) {
+        <button 
+          class="level-btn"
+          [class.active]="isLevelSelected(level)"
+          [ngClass]="level.toLowerCase()"
+          (click)="toggleLevel(level)">
+          {{ level }}
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (loading) {
+    <div class="loading">Loading logs...</div>
+  } @else if (error) {
+    <div class="error-message">{{ error }}</div>
+  } @else {
+    <div class="logs-list">
+      @for (log of logs; track log.id) {
+        <div class="log-entry" [class.expanded]="isExpanded(log.id)" (click)="toggleExpand(log.id)">
+          <div class="log-header">
+            <span class="badge" [ngClass]="getLevelClass(log.level)">{{ log.level }}</span>
+            <span class="timestamp">{{ formatTimestamp(log.timestamp) }}</span>
+            <span class="logger">{{ log.logger }}</span>
+          </div>
+          <div class="log-message">{{ log.message }}</div>
+          
+          @if (isExpanded(log.id)) {
+            <div class="log-details">
+              @if (log.stackTrace) {
+                <div class="stack-trace">
+                  <div class="detail-label">Stack Trace</div>
+                  <pre>{{ log.stackTrace }}</pre>
+                </div>
+              }
+              <div class="metadata">
+                @if (log.exceptionClass) {
+                  <div class="meta-item">
+                    <span class="meta-label">Exception:</span>
+                    <span class="meta-value exception">{{ log.exceptionClass }}</span>
+                  </div>
+                }
+                @if (log.environment) {
+                  <div class="meta-item">
+                    <span class="meta-label">Environment:</span>
+                    <span class="meta-value">{{ log.environment }}</span>
+                  </div>
+                }
+                @if (log.hostName) {
+                  <div class="meta-item">
+                    <span class="meta-label">Host:</span>
+                    <span class="meta-value">{{ log.hostName }}</span>
+                  </div>
+                }
+                @if (log.traceId) {
+                  <div class="meta-item">
+                    <span class="meta-label">Trace ID:</span>
+                    <span class="meta-value mono">{{ log.traceId }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      } @empty {
+        <div class="no-data">No logs found</div>
+      }
+    </div>
+
+    @if (totalPages > 1) {
+      <div class="pagination">
+        <button class="btn" [disabled]="currentPage === 0" (click)="previousPage()">Previous</button>
+        <span class="page-info">Page {{ currentPage + 1 }} of {{ totalPages }}</span>
+        <button class="btn" [disabled]="currentPage >= totalPages - 1" (click)="nextPage()">Next</button>
+      </div>
+    }
+  }
+</div>

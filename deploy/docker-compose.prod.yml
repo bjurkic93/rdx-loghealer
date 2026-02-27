@@ -1,0 +1,131 @@
+services:
+  # ===================
+  # APPLICATION SERVICES
+  # ===================
+  backend:
+    image: ghcr.io/${GITHUB_REPO}:latest
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - DATABASE_URL=jdbc:postgresql://postgres:5432/rdx_loghealer_db
+      - DATABASE_USERNAME=loghealer
+      - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+      - ELASTICSEARCH_URIS=http://elasticsearch:9200
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - loghealer-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  dashboard:
+    image: ghcr.io/${GITHUB_REPO}-dashboard:latest
+    depends_on:
+      - backend
+    networks:
+      - loghealer-network
+    restart: unless-stopped
+
+  # ===================
+  # REVERSE PROXY
+  # ===================
+  caddy:
+    image: caddy:2-alpine
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - dashboard
+      - backend
+    networks:
+      - loghealer-network
+    restart: unless-stopped
+
+  # ===================
+  # DATA SERVICES
+  # ===================
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_DB=rdx_loghealer_db
+      - POSTGRES_USER=loghealer
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U loghealer -d rdx_loghealer_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - loghealer-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - cluster.routing.allocation.disk.threshold_enabled=false
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - loghealer-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - loghealer-network
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+
+networks:
+  loghealer-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  elasticsearch_data:
+  redis_data:
+  caddy_data:
+  caddy_config:

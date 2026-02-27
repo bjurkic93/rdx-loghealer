@@ -1,0 +1,64 @@
+<div class="exception-detail-page">
+  <a routerLink="/exceptions" class="back-link">
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Back to Exceptions
+  </a>
+
+  @if (loading) {
+    <div class="loading">Loading exception details...</div>
+  } @else if (error) {
+    <div class="error-message">{{ error }}</div>
+  } @else if (exception) {
+    <div class="exception-header card">
+      <div class="header-top">
+        <span class="badge" [ngClass]="getStatusClass(exception.status)">{{ exception.status }}</span>
+        <span class="occurrence-count">{{ exception.count }} occurrences</span>
+      </div>
+      
+      <h1 class="exception-class">{{ exception.exceptionClass }}</h1>
+      <p class="exception-message">{{ exception.message }}</p>
+      
+      <div class="meta-row">
+        <div class="meta-item">
+          <span class="meta-label">First seen</span>
+          <span class="meta-value">{{ formatTimestamp(exception.firstSeen) }}</span>
+        </div>
+        <div class="meta-item">
+          <span class="meta-label">Last seen</span>
+          <span class="meta-value">{{ formatTimestamp(exception.lastSeen) }}</span>
+        </div>
+        @if (exception.environment) {
+          <div class="meta-item">
+            <span class="meta-label">Environment</span>
+            <span class="meta-value">{{ exception.environment }}</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <div class="stack-trace-section card">
+      <h2>Stack Trace</h2>
+      <pre class="stack-trace">{{ exception.sampleStackTrace }}</pre>
+    </div>
+
+    <div class="info-section card">
+      <h2>Details</h2>
+      <div class="info-grid">
+        <div class="info-item">
+          <span class="info-label">Fingerprint</span>
+          <code class="info-value">{{ exception.fingerprint }}</code>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Project ID</span>
+          <code class="info-value">{{ exception.projectId }}</code>
+        </div>
+        <div class="info-item">
+          <span class="info-label">Tenant ID</span>
+          <code class="info-value">{{ exception.tenantId }}</code>
+        </div>
+      </div>
+    </div>
+  }
+</div>
