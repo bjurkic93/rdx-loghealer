@@ -61,7 +61,7 @@ public class AiAnalysisController {
                 "default", "claude",
                 "models", Map.of(
                         "openai", "gpt-4o",
-                        "claude", "claude-sonnet-4-20250514"
+                        "claude", "claude-opus-4-6"
                 )
         ));
     }

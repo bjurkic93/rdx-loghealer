@@ -60,7 +60,10 @@ loghealer:
     index-prefix: loghealer
     logs-retention-days: 90
   ai:
-    provider: ${AI_PROVIDER:openai}
+    default-provider: ${AI_PROVIDER:claude}
+    claude:
+      api-key: ${CLAUDE_API_KEY:}
+      model: claude-opus-4-6
     openai:
       api-key: ${OPENAI_API_KEY:}
-      model: gpt-4
+      model: gpt-4o

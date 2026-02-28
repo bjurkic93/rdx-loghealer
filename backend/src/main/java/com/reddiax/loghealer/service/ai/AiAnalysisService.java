@@ -29,7 +29,7 @@ public class AiAnalysisService {
     @Value("${loghealer.ai.openai.model:gpt-4o}")
     private String openaiModel;
 
-    @Value("${loghealer.ai.claude.model:claude-sonnet-4-20250514}")
+    @Value("${loghealer.ai.claude.model:claude-sonnet-4-6}")
     private String claudeModel;
 
     @Value("${loghealer.ai.default-provider:claude}")
