@@ -40,7 +40,7 @@ public class EventIngestionService {
         }
 
         Project project = projectOpt.get();
-        if (!project.getIsActive()) {
+        if (!project.isActive()) {
             throw new IllegalArgumentException("Project is inactive");
         }
 
