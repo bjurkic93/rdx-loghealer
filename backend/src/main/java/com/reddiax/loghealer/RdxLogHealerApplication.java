@@ -10,7 +10,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication
 @EnableAsync
 @EnableScheduling
-@EnableJpaRepositories(basePackages = "com.reddiax.loghealer.repository.jpa")
+@EnableJpaRepositories(basePackages = {"com.reddiax.loghealer.repository.jpa", "com.reddiax.loghealer.monitoring.repository"})
 @EnableElasticsearchRepositories(basePackages = "com.reddiax.loghealer.repository.elasticsearch")
 public class RdxLogHealerApplication {
 
