@@ -192,7 +192,7 @@ public class TraceService {
 
             events.add(TraceTimelineResponse.TraceEvent.builder()
                     .id(log.getId())
-                    .timestamp(log.getTimestamp())
+                    .timestamp(log.getTimestamp() != null ? log.getTimestamp().toEpochMilli() : 0L)
                     .serviceName(serviceName)
                     .projectId(log.getProjectId())
                     .level(log.getLevel())
@@ -206,8 +206,8 @@ public class TraceService {
                     .build());
         }
 
-        long startTime = logs.get(0).getTimestamp();
-        long endTime = logs.get(logs.size() - 1).getTimestamp();
+        long startTime = logs.get(0).getTimestamp() != null ? logs.get(0).getTimestamp().toEpochMilli() : 0L;
+        long endTime = logs.get(logs.size() - 1).getTimestamp() != null ? logs.get(logs.size() - 1).getTimestamp().toEpochMilli() : 0L;
 
         return TraceTimelineResponse.builder()
                 .traceId(traceId)
