@@ -34,8 +34,7 @@ spring:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: https://auth.reddia-x.com
-          jwk-set-uri: https://auth.reddia-x.com/oauth2/jwks
+          jwk-set-uri: https://auth.reddia-x.com/.well-known/jwks.json
 
 logging:
   level:
