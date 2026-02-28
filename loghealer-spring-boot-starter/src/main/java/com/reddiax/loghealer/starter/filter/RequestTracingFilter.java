@@ -1,7 +1,6 @@
 package com.reddiax.loghealer.starter.filter;
 
 import com.reddiax.loghealer.starter.LogHealerProperties;
-import com.reddiax.loghealer.starter.client.LogHealerClient;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -12,8 +11,6 @@ import org.slf4j.MDC;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.web.filter.OncePerRequestFilter;
-import org.springframework.web.util.ContentCachingRequestWrapper;
-import org.springframework.web.util.ContentCachingResponseWrapper;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -29,13 +26,13 @@ public class RequestTracingFilter extends OncePerRequestFilter {
     public static final String ENDPOINT = "endpoint";
     public static final String METHOD = "method";
     public static final String START_TIME = "startTime";
+    public static final String PROJECT_ID = "projectId";
+    public static final String ENVIRONMENT = "environment";
 
     private final LogHealerProperties properties;
-    private final LogHealerClient client;
 
-    public RequestTracingFilter(LogHealerProperties properties, LogHealerClient client) {
+    public RequestTracingFilter(LogHealerProperties properties) {
         this.properties = properties;
-        this.client = client;
     }
 
     @Override
@@ -47,9 +44,6 @@ public class RequestTracingFilter extends OncePerRequestFilter {
             return;
         }
 
-        ContentCachingRequestWrapper wrappedRequest = new ContentCachingRequestWrapper(request);
-        ContentCachingResponseWrapper wrappedResponse = new ContentCachingResponseWrapper(response);
-
         String traceId = extractOrGenerateTraceId(request);
         long startTime = System.currentTimeMillis();
 
@@ -57,6 +51,8 @@ public class RequestTracingFilter extends OncePerRequestFilter {
         MDC.put(ENDPOINT, request.getRequestURI());
         MDC.put(METHOD, request.getMethod());
         MDC.put(START_TIME, String.valueOf(startTime));
+        MDC.put(PROJECT_ID, properties.getProjectId());
+        MDC.put(ENVIRONMENT, properties.getEnvironment());
 
         String userId = extractUserId(request);
         if (userId != null) {
@@ -66,36 +62,21 @@ public class RequestTracingFilter extends OncePerRequestFilter {
         response.setHeader(properties.getTracing().getTraceIdHeader(), traceId);
 
         try {
-            if (properties.getTracing().isLogRequests()) {
-                log.info(">>> {} {} traceId={}", request.getMethod(), request.getRequestURI(), traceId);
-            }
-
-            filterChain.doFilter(wrappedRequest, wrappedResponse);
+            filterChain.doFilter(request, response);
 
         } finally {
             long duration = System.currentTimeMillis() - startTime;
-
-            if (properties.getTracing().isLogResponses()) {
-                log.info("<<< {} {} status={} duration={}ms traceId={}",
-                        request.getMethod(), request.getRequestURI(),
-                        wrappedResponse.getStatus(), duration, traceId);
-            }
+            int status = response.getStatus();
 
             if (duration > properties.getPerformance().getSlowRequestThresholdMs()) {
-                LogHealerClient.SlowRequestEvent event = new LogHealerClient.SlowRequestEvent();
-                event.setTraceId(traceId);
-                event.setEndpoint(request.getRequestURI());
-                event.setMethod(request.getMethod());
-                event.setDurationMs(duration);
-                event.setUserId(userId);
-                client.reportSlowRequest(event);
-
-                log.warn("SLOW REQUEST: {} {} took {}ms (threshold: {}ms) traceId={}",
-                        request.getMethod(), request.getRequestURI(), duration,
-                        properties.getPerformance().getSlowRequestThresholdMs(), traceId);
+                log.warn("SLOW_REQUEST: {} {} status={} duration={}ms threshold={}ms",
+                        request.getMethod(), request.getRequestURI(), status, duration,
+                        properties.getPerformance().getSlowRequestThresholdMs());
+            } else if (properties.getTracing().isLogRequests()) {
+                log.info("REQUEST: {} {} status={} duration={}ms",
+                        request.getMethod(), request.getRequestURI(), status, duration);
             }
 
-            wrappedResponse.copyBodyToResponse();
             MDC.clear();
         }
     }

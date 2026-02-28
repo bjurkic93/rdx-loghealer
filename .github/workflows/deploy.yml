@@ -102,8 +102,44 @@ jobs:
             # Cleanup old images
             docker image prune -af
             
-            # Health check
-            sleep 45
-            curl -f http://localhost:8090/actuator/health || exit 1
+            # Smart health check with retries
+            echo "Waiting for backend to be healthy..."
+            MAX_RETRIES=12
+            RETRY_INTERVAL=10
+            RETRY_COUNT=0
+            
+            while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+              RETRY_COUNT=$((RETRY_COUNT + 1))
+              echo "Health check attempt $RETRY_COUNT/$MAX_RETRIES..."
+              
+              # Check if container is running
+              if ! docker ps | grep -q loghealer-backend; then
+                echo "Backend container not running, checking logs..."
+                docker logs loghealer-backend-1 --tail 50 2>&1 || true
+                
+                # Check if it's a startup failure vs still starting
+                if docker ps -a | grep -q "loghealer-backend.*Exited"; then
+                  echo "❌ Backend container crashed! Last logs:"
+                  docker logs loghealer-backend-1 --tail 100 2>&1 || true
+                  exit 1
+                fi
+              fi
+              
+              # Try health endpoint
+              if curl -sf http://localhost:8090/actuator/health > /dev/null 2>&1; then
+                echo "✅ Backend is healthy!"
+                break
+              fi
+              
+              if [ $RETRY_COUNT -eq $MAX_RETRIES ]; then
+                echo "❌ Health check failed after $MAX_RETRIES attempts"
+                echo "Backend logs:"
+                docker logs loghealer-backend-1 --tail 100 2>&1 || true
+                exit 1
+              fi
+              
+              echo "Not ready yet, waiting ${RETRY_INTERVAL}s..."
+              sleep $RETRY_INTERVAL
+            done
             
             echo "✅ Deployment successful!"
