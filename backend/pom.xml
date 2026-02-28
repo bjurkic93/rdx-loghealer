@@ -106,6 +106,13 @@
             <artifactId>spring-boot-starter-webflux</artifactId>
         </dependency>
 
+        <!-- SendGrid for email notifications (monitoring alerts) -->
+        <dependency>
+            <groupId>com.sendgrid</groupId>
+            <artifactId>sendgrid-java</artifactId>
+            <version>4.10.2</version>
+        </dependency>
+
         <!-- Dev tools -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
