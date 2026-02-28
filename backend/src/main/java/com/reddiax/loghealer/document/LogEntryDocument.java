@@ -60,6 +60,12 @@ public class LogEntryDocument {
     private String spanId;
 
     @Field(type = FieldType.Keyword)
+    private String parentSpanId;
+
+    @Field(type = FieldType.Keyword)
+    private String serviceName;
+
+    @Field(type = FieldType.Keyword)
     private String hostName;
 
     @Field(type = FieldType.Keyword)

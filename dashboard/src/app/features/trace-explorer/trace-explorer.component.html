@@ -1,0 +1,137 @@
+<div class="trace-explorer">
+  <div class="page-header">
+    <div>
+      <h1>Trace Explorer</h1>
+      <p class="trace-id">Trace ID: <code>{{ traceId }}</code></p>
+    </div>
+    <a routerLink="/logs" class="btn btn-secondary">Back to Logs</a>
+  </div>
+
+  <div class="error-message" *ngIf="error">
+    {{ error }}
+    <button class="close-btn" (click)="error = null">&times;</button>
+  </div>
+
+  <div class="loading" *ngIf="loading">
+    Loading trace timeline...
+  </div>
+
+  <div class="empty-state" *ngIf="!loading && !timeline">
+    <h3>Trace Not Found</h3>
+    <p>No events found for this trace ID.</p>
+  </div>
+
+  <ng-container *ngIf="timeline">
+    <!-- Summary Cards -->
+    <div class="summary-cards">
+      <div class="summary-card">
+        <span class="label">Duration</span>
+        <span class="value">{{ formatDuration(timeline.durationMs) }}</span>
+      </div>
+      <div class="summary-card">
+        <span class="label">Events</span>
+        <span class="value">{{ timeline.totalEvents }}</span>
+      </div>
+      <div class="summary-card">
+        <span class="label">Services</span>
+        <span class="value">{{ timeline.servicesInvolved.length }}</span>
+      </div>
+      <div class="summary-card" [class.has-error]="timeline.hasError">
+        <span class="label">Status</span>
+        <span class="value">{{ timeline.hasError ? 'Error' : 'Success' }}</span>
+      </div>
+      <div class="summary-card" *ngIf="timeline.rootCauseService">
+        <span class="label">Root Cause</span>
+        <span class="value error">{{ timeline.rootCauseService }}</span>
+      </div>
+    </div>
+
+    <!-- Services Involved -->
+    <div class="services-section">
+      <h3>Services Involved</h3>
+      <div class="service-tags">
+        <span class="service-tag" *ngFor="let service of timeline.servicesInvolved"
+              [class.error]="service === timeline.rootCauseService">
+          {{ service }}
+        </span>
+      </div>
+    </div>
+
+    <!-- Timeline Visualization -->
+    <div class="timeline-section">
+      <h3>Timeline</h3>
+      <div class="timeline-bar">
+        <div class="timeline-markers">
+          <span class="marker start">{{ formatTimestamp(timeline.startTime) }}</span>
+          <span class="marker end">{{ formatTimestamp(timeline.endTime) }}</span>
+        </div>
+        <div class="timeline-track">
+          <div class="event-dot" 
+               *ngFor="let event of timeline.events"
+               [style.left.%]="getEventOffset(event)"
+               [class.error]="event.isError"
+               [class.selected]="selectedEvent?.id === event.id"
+               (click)="selectEvent(event)"
+               [title]="event.serviceName + ': ' + event.message">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Events List -->
+    <div class="events-section">
+      <h3>Events ({{ timeline.events.length }})</h3>
+      <div class="events-list">
+        <div class="event-row" 
+             *ngFor="let event of timeline.events"
+             [class.selected]="selectedEvent?.id === event.id"
+             [class.error]="event.isError"
+             (click)="selectEvent(event)">
+          <div class="event-time">
+            {{ formatTimestamp(event.timestamp) }}
+          </div>
+          <div class="event-service">
+            <span class="service-badge">{{ event.serviceName }}</span>
+          </div>
+          <div class="event-level">
+            <span class="level-badge" [ngClass]="getLevelClass(event.level)">
+              {{ event.level }}
+            </span>
+          </div>
+          <div class="event-message">
+            {{ event.message }}
+          </div>
+          <div class="event-expand">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline [attr.points]="selectedEvent?.id === event.id ? '18,15 12,9 6,15' : '6,9 12,15 18,9'"></polyline>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Event Details Panel -->
+        <div class="event-details" *ngIf="selectedEvent">
+          <div class="detail-group">
+            <label>Logger</label>
+            <code>{{ selectedEvent.logger || 'N/A' }}</code>
+          </div>
+          <div class="detail-group" *ngIf="selectedEvent.spanId">
+            <label>Span ID</label>
+            <code>{{ selectedEvent.spanId }}</code>
+          </div>
+          <div class="detail-group" *ngIf="selectedEvent.parentSpanId">
+            <label>Parent Span</label>
+            <code>{{ selectedEvent.parentSpanId }}</code>
+          </div>
+          <div class="detail-group" *ngIf="selectedEvent.exceptionType">
+            <label>Exception Type</label>
+            <code class="error">{{ selectedEvent.exceptionType }}</code>
+          </div>
+          <div class="detail-group full-width" *ngIf="selectedEvent.stackTrace">
+            <label>Stack Trace</label>
+            <pre class="stack-trace">{{ selectedEvent.stackTrace }}</pre>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+</div>

@@ -51,6 +51,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/v1/github/**").authenticated()
                 .requestMatchers("/api/v1/projects/**").authenticated()
                 .requestMatchers("/api/v1/settings/**").authenticated()
+                .requestMatchers("/api/v1/service-groups/**").authenticated()
+                .requestMatchers("/api/v1/traces/**").authenticated()
                 // All other endpoints require authentication
                 .anyRequest().authenticated()
             )

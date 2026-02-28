@@ -7,6 +7,7 @@ import { LogSearchRequest, LogSearchResponse } from '../models/log.model';
 import { ExceptionGroup } from '../models/exception.model';
 import { AiAnalysisResponse, AiProviders } from '../models/ai.model';
 import { GitHubConnection, PullRequestResponse } from '../models/github.model';
+import { ServiceGroup, ServiceGroupRequest, TraceTimeline } from '../models/service-group.model';
 
 @Injectable({
   providedIn: 'root'
@@ -110,5 +111,40 @@ export class ApiService {
       .set('projectId', projectId)
       .set('provider', provider);
     return this.http.post<{ analysis: AiAnalysisResponse; pullRequest: PullRequestResponse }>(`${this.baseUrl}/github/analyze-and-pr/${exceptionGroupId}`, null, { params });
+  }
+
+  // Service Groups
+  getServiceGroups(): Observable<ServiceGroup[]> {
+    return this.http.get<ServiceGroup[]>(`${this.baseUrl}/service-groups`);
+  }
+
+  getServiceGroup(id: string): Observable<ServiceGroup> {
+    return this.http.get<ServiceGroup>(`${this.baseUrl}/service-groups/${id}`);
+  }
+
+  createServiceGroup(request: ServiceGroupRequest): Observable<ServiceGroup> {
+    return this.http.post<ServiceGroup>(`${this.baseUrl}/service-groups`, request);
+  }
+
+  updateServiceGroup(id: string, request: ServiceGroupRequest): Observable<ServiceGroup> {
+    return this.http.put<ServiceGroup>(`${this.baseUrl}/service-groups/${id}`, request);
+  }
+
+  deleteServiceGroup(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/service-groups/${id}`);
+  }
+
+  // Traces
+  getTraceTimeline(traceId: string): Observable<TraceTimeline> {
+    return this.http.get<TraceTimeline>(`${this.baseUrl}/traces/${traceId}`);
+  }
+
+  getTraceTimelineForServiceGroup(traceId: string, serviceGroupId: string): Observable<TraceTimeline> {
+    return this.http.get<TraceTimeline>(`${this.baseUrl}/traces/${traceId}/service-group/${serviceGroupId}`);
+  }
+
+  getRelatedTraces(exceptionGroupId: string, limit = 5): Observable<TraceTimeline[]> {
+    const params = new HttpParams().set('limit', String(limit));
+    return this.http.get<TraceTimeline[]>(`${this.baseUrl}/traces/exception/${exceptionGroupId}/related`, { params });
   }
 }

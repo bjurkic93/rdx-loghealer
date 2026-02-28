@@ -41,6 +41,16 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    path: 'service-groups',
+    loadComponent: () => import('./features/service-groups/service-groups.component').then(m => m.ServiceGroupsComponent),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'traces/:traceId',
+    loadComponent: () => import('./features/trace-explorer/trace-explorer.component').then(m => m.TraceExplorerComponent),
+    canActivate: [authGuard]
+  },
+  {
     path: '**',
     redirectTo: 'dashboard'
   }

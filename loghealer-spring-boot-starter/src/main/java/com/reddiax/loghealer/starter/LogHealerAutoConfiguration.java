@@ -1,6 +1,8 @@
 package com.reddiax.loghealer.starter;
 
 import com.reddiax.loghealer.starter.aop.PerformanceMonitorAspect;
+import com.reddiax.loghealer.starter.config.TracingClientConfiguration;
+import com.reddiax.loghealer.starter.config.WebClientTracingConfiguration;
 import com.reddiax.loghealer.starter.filter.RequestTracingFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,11 +12,13 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnWebApplicat
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
 @AutoConfiguration
 @Configuration
 @EnableConfigurationProperties(LogHealerProperties.class)
 @ConditionalOnProperty(prefix = "loghealer", name = "enabled", havingValue = "true", matchIfMissing = true)
+@Import({TracingClientConfiguration.class, WebClientTracingConfiguration.class})
 public class LogHealerAutoConfiguration {
 
     private static final Logger log = LoggerFactory.getLogger(LogHealerAutoConfiguration.class);

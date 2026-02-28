@@ -8,5 +8,6 @@
     <include file="db/changelog/001-initial-schema.xml"/>
     <include file="db/changelog/002-github-connection.xml"/>
     <include file="db/changelog/003-add-backend-projects.xml"/>
+    <include file="db/changelog/004-service-groups.xml"/>
 
 </databaseChangeLog>

@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="004-service-groups" author="loghealer">
+        <!-- Service Group table -->
+        <createTable tableName="service_group">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="tenant_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="varchar(500)"/>
+            <column name="is_active" type="boolean" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamp with time zone">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp with time zone"/>
+        </createTable>
+
+        <addForeignKeyConstraint
+            baseTableName="service_group"
+            baseColumnNames="tenant_id"
+            constraintName="fk_service_group_tenant"
+            referencedTableName="tenant"
+            referencedColumnNames="id"/>
+
+        <!-- Many-to-Many: Service Group <-> Projects -->
+        <createTable tableName="service_group_projects">
+            <column name="service_group_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="project_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey
+            tableName="service_group_projects"
+            columnNames="service_group_id, project_id"
+            constraintName="pk_service_group_projects"/>
+
+        <addForeignKeyConstraint
+            baseTableName="service_group_projects"
+            baseColumnNames="service_group_id"
+            constraintName="fk_sgp_service_group"
+            referencedTableName="service_group"
+            referencedColumnNames="id"
+            onDelete="CASCADE"/>
+
+        <addForeignKeyConstraint
+            baseTableName="service_group_projects"
+            baseColumnNames="project_id"
+            constraintName="fk_sgp_project"
+            referencedTableName="project"
+            referencedColumnNames="id"
+            onDelete="CASCADE"/>
+
+        <!-- Database Connection table -->
+        <createTable tableName="database_connection">
+            <column name="id" type="uuid">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="service_group_id" type="uuid">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="db_type" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="host" type="varchar(255)"/>
+            <column name="port" type="integer"/>
+            <column name="database_name" type="varchar(255)"/>
+            <column name="schema_name" type="varchar(255)"/>
+            <column name="created_at" type="timestamp with time zone">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamp with time zone"/>
+        </createTable>
+
+        <addForeignKeyConstraint
+            baseTableName="database_connection"
+            baseColumnNames="service_group_id"
+            constraintName="fk_db_conn_service_group"
+            referencedTableName="service_group"
+            referencedColumnNames="id"
+            onDelete="CASCADE"/>
+
+        <!-- Indexes -->
+        <createIndex tableName="service_group" indexName="idx_service_group_tenant">
+            <column name="tenant_id"/>
+        </createIndex>
+
+        <createIndex tableName="database_connection" indexName="idx_db_conn_service_group">
+            <column name="service_group_id"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>
