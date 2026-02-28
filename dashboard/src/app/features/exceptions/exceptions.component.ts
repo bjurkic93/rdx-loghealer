@@ -68,10 +68,11 @@ export class ExceptionsComponent implements OnInit {
     }
   }
 
-  getTimeAgo(ts: string): string {
+  getTimeAgo(ts: string | number): string {
     if (!ts) return '-';
     try {
-      const date = new Date(ts);
+      const date = typeof ts === 'number' ? new Date(ts) : new Date(ts);
+      if (isNaN(date.getTime())) return '-';
       const now = new Date();
       const diffMs = now.getTime() - date.getTime();
       const diffMins = Math.floor(diffMs / 60000);
@@ -83,7 +84,7 @@ export class ExceptionsComponent implements OnInit {
       if (diffHours < 24) return `${diffHours}h ago`;
       return `${diffDays}d ago`;
     } catch {
-      return ts;
+      return '-';
     }
   }
 }

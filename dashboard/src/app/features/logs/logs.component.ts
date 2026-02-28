@@ -104,12 +104,15 @@ export class LogsComponent implements OnInit {
     return level?.toLowerCase() || 'info';
   }
 
-  formatTimestamp(ts: string): string {
+  formatTimestamp(ts: string | number): string {
     if (!ts) return '-';
     try {
-      return new Date(ts).toLocaleString();
+      // Handle both epoch millis (number) and ISO string
+      const date = typeof ts === 'number' ? new Date(ts) : new Date(ts);
+      if (isNaN(date.getTime())) return '-';
+      return date.toLocaleString();
     } catch {
-      return ts;
+      return '-';
     }
   }
 }
