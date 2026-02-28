@@ -37,14 +37,14 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/v1/logs", "/api/v1/logs/batch").permitAll()
                 // Event ingestion - API key auth
                 .requestMatchers(HttpMethod.POST, "/api/v1/events/**").permitAll()
-                // Dashboard & Search - temporarily open for development
-                .requestMatchers("/api/v1/dashboard/**").permitAll()
-                .requestMatchers("/api/v1/logs/search").permitAll()
-                .requestMatchers("/api/v1/exceptions/**").permitAll()
-                // AI Analysis endpoints - temporarily open for development
-                .requestMatchers("/api/v1/ai/**").permitAll()
-                // GitHub integration endpoints
-                .requestMatchers("/api/v1/github/**").permitAll()
+                // Protected endpoints - require SUPER_ADMIN role
+                .requestMatchers("/api/v1/dashboard/**").hasRole("SUPER_ADMIN")
+                .requestMatchers("/api/v1/logs/search").hasRole("SUPER_ADMIN")
+                .requestMatchers("/api/v1/exceptions/**").hasRole("SUPER_ADMIN")
+                .requestMatchers("/api/v1/ai/**").hasRole("SUPER_ADMIN")
+                .requestMatchers("/api/v1/github/**").hasRole("SUPER_ADMIN")
+                .requestMatchers("/api/v1/projects/**").hasRole("SUPER_ADMIN")
+                .requestMatchers("/api/v1/settings/**").hasRole("SUPER_ADMIN")
                 // All other endpoints require authentication
                 .anyRequest().authenticated()
             )
