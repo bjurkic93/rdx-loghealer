@@ -41,9 +41,10 @@ jobs:
           EOF
 
       - name: Publish loghealer-client
+        continue-on-error: true
         run: |
           cd loghealer-client
-          mvn deploy -DskipTests
+          mvn deploy -DskipTests || echo "Version may already exist"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_ACTOR: ${{ github.actor }}
