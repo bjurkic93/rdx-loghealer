@@ -53,6 +53,7 @@ logging:
     root: INFO
     com.reddiax.loghealer: DEBUG
     org.springframework.data.elasticsearch: DEBUG
+    org.springframework.security: DEBUG
 
 management:
   endpoints:
