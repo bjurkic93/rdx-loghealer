@@ -102,6 +102,33 @@
       </div>
 
       <div class="form-group">
+        <label>GitHub Repositories / Projects</label>
+        <div class="project-list">
+          <div class="project-item selectable" 
+               *ngFor="let project of projects" 
+               [class.selected]="isProjectSelected(project.id)"
+               (click)="toggleProjectSelection(project.id)">
+            <div class="project-info">
+              <span class="project-name">{{ project.name }}</span>
+              <span class="project-repo" *ngIf="project.repoUrl">{{ project.repoUrl }}</span>
+            </div>
+            <span class="project-provider" *ngIf="project.gitProvider">{{ project.gitProvider }}</span>
+            <span class="checkmark" *ngIf="isProjectSelected(project.id)">✓</span>
+          </div>
+          <div class="empty-projects" *ngIf="projects.length === 0">
+            No projects yet. Create one below.
+          </div>
+        </div>
+        <button class="btn btn-secondary btn-add-new" (click)="openProjectModal()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          Add New Project
+        </button>
+      </div>
+
+      <div class="form-group">
         <label>Databases</label>
         <div class="database-list">
           <div class="database-item" *ngFor="let db of formData.databases; let i = index">
@@ -150,6 +177,33 @@
       </div>
 
       <div class="form-group">
+        <label>GitHub Repositories / Projects</label>
+        <div class="project-list">
+          <div class="project-item selectable" 
+               *ngFor="let project of projects" 
+               [class.selected]="isProjectSelected(project.id)"
+               (click)="toggleProjectSelection(project.id)">
+            <div class="project-info">
+              <span class="project-name">{{ project.name }}</span>
+              <span class="project-repo" *ngIf="project.repoUrl">{{ project.repoUrl }}</span>
+            </div>
+            <span class="project-provider" *ngIf="project.gitProvider">{{ project.gitProvider }}</span>
+            <span class="checkmark" *ngIf="isProjectSelected(project.id)">✓</span>
+          </div>
+          <div class="empty-projects" *ngIf="projects.length === 0">
+            No projects yet. Create one below.
+          </div>
+        </div>
+        <button class="btn btn-secondary btn-add-new" (click)="openProjectModal()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          Add New Project
+        </button>
+      </div>
+
+      <div class="form-group">
         <label>Databases</label>
         <div class="database-list">
           <div class="database-item" *ngFor="let db of formData.databases; let i = index">
@@ -174,6 +228,45 @@
     <div class="modal-footer">
       <button class="btn btn-secondary" (click)="closeModals()">Cancel</button>
       <button class="btn btn-primary" (click)="updateServiceGroup()" [disabled]="!formData.name">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Create Project Modal -->
+<div class="modal-overlay" *ngIf="showProjectModal" (click)="showProjectModal = false">
+  <div class="modal modal-sm" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>Add New Project</h2>
+      <button class="close-btn" (click)="showProjectModal = false">&times;</button>
+    </div>
+    
+    <div class="modal-body">
+      <div class="form-group">
+        <label for="project-name">Project Name *</label>
+        <input type="text" id="project-name" [(ngModel)]="newProject.name" placeholder="e.g., rdx-backend">
+      </div>
+
+      <div class="form-group">
+        <label for="project-repo">Repository URL *</label>
+        <input type="text" id="project-repo" [(ngModel)]="newProject.repoUrl" placeholder="https://github.com/owner/repo">
+      </div>
+
+      <div class="form-group">
+        <label for="git-provider">Git Provider</label>
+        <select id="git-provider" [(ngModel)]="newProject.gitProvider">
+          <option *ngFor="let provider of gitProviders" [value]="provider">{{ provider }}</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="default-branch">Default Branch</label>
+        <input type="text" id="default-branch" [(ngModel)]="newProject.defaultBranch" placeholder="main">
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="showProjectModal = false">Cancel</button>
+      <button class="btn btn-primary" (click)="createProject()" [disabled]="!newProject.name || !newProject.repoUrl">Create Project</button>
     </div>
   </div>
 </div>

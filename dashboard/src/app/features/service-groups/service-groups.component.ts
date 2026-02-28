@@ -2,7 +2,7 @@ import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../core/services/api.service';
-import { ServiceGroup, ServiceGroupRequest, DatabaseConnectionRequest } from '../../core/models/service-group.model';
+import { ServiceGroup, ServiceGroupRequest, DatabaseConnectionRequest, Project, ProjectRequest } from '../../core/models/service-group.model';
 
 @Component({
   selector: 'app-service-groups',
@@ -15,11 +15,13 @@ export class ServiceGroupsComponent implements OnInit {
   private apiService = inject(ApiService);
 
   serviceGroups: ServiceGroup[] = [];
+  projects: Project[] = [];
   loading = false;
   error: string | null = null;
 
   showCreateModal = false;
   showEditModal = false;
+  showProjectModal = false;
   editingGroup: ServiceGroup | null = null;
 
   formData: ServiceGroupRequest = {
@@ -34,10 +36,19 @@ export class ServiceGroupsComponent implements OnInit {
     dbType: 'POSTGRESQL'
   };
 
+  newProject: ProjectRequest = {
+    name: '',
+    repoUrl: '',
+    gitProvider: 'GITHUB',
+    defaultBranch: 'main'
+  };
+
   dbTypes = ['POSTGRESQL', 'MYSQL', 'MARIADB', 'MONGODB', 'REDIS', 'ELASTICSEARCH'];
+  gitProviders = ['GITHUB', 'GITLAB', 'BITBUCKET'];
 
   ngOnInit(): void {
     this.loadServiceGroups();
+    this.loadProjects();
   }
 
   loadServiceGroups(): void {
@@ -53,6 +64,17 @@ export class ServiceGroupsComponent implements OnInit {
         this.error = 'Failed to load service groups';
         this.loading = false;
         console.error('Error loading service groups:', err);
+      }
+    });
+  }
+
+  loadProjects(): void {
+    this.apiService.getProjects().subscribe({
+      next: (projects) => {
+        this.projects = projects;
+      },
+      error: (err) => {
+        console.error('Error loading projects:', err);
       }
     });
   }
@@ -88,7 +110,54 @@ export class ServiceGroupsComponent implements OnInit {
   closeModals(): void {
     this.showCreateModal = false;
     this.showEditModal = false;
+    this.showProjectModal = false;
     this.editingGroup = null;
+  }
+
+  openProjectModal(): void {
+    this.newProject = {
+      name: '',
+      repoUrl: '',
+      gitProvider: 'GITHUB',
+      defaultBranch: 'main'
+    };
+    this.showProjectModal = true;
+  }
+
+  createProject(): void {
+    if (!this.newProject.name || !this.newProject.repoUrl) return;
+
+    this.apiService.createProject(this.newProject).subscribe({
+      next: (project) => {
+        this.projects.push(project);
+        this.formData.projectIds = this.formData.projectIds || [];
+        this.formData.projectIds.push(project.id);
+        this.showProjectModal = false;
+        this.newProject = { name: '', repoUrl: '', gitProvider: 'GITHUB', defaultBranch: 'main' };
+      },
+      error: (err) => {
+        this.error = 'Failed to create project';
+        console.error('Error creating project:', err);
+      }
+    });
+  }
+
+  toggleProjectSelection(projectId: string): void {
+    this.formData.projectIds = this.formData.projectIds || [];
+    const index = this.formData.projectIds.indexOf(projectId);
+    if (index === -1) {
+      this.formData.projectIds.push(projectId);
+    } else {
+      this.formData.projectIds.splice(index, 1);
+    }
+  }
+
+  isProjectSelected(projectId: string): boolean {
+    return this.formData.projectIds?.includes(projectId) ?? false;
+  }
+
+  getProjectById(id: string): Project | undefined {
+    return this.projects.find(p => p.id === id);
   }
 
   addDatabase(): void {

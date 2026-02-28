@@ -7,7 +7,7 @@ import { LogSearchRequest, LogSearchResponse } from '../models/log.model';
 import { ExceptionGroup } from '../models/exception.model';
 import { AiAnalysisResponse, AiProviders } from '../models/ai.model';
 import { GitHubConnection, PullRequestResponse } from '../models/github.model';
-import { ServiceGroup, ServiceGroupRequest, TraceTimeline } from '../models/service-group.model';
+import { ServiceGroup, ServiceGroupRequest, TraceTimeline, Project, ProjectRequest } from '../models/service-group.model';
 import {
   MonitoredService,
   ServiceCreateDto,
@@ -122,6 +122,27 @@ export class ApiService {
       .set('projectId', projectId)
       .set('provider', provider);
     return this.http.post<{ analysis: AiAnalysisResponse; pullRequest: PullRequestResponse }>(`${this.baseUrl}/github/analyze-and-pr/${exceptionGroupId}`, null, { params });
+  }
+
+  // Projects
+  getProjects(): Observable<Project[]> {
+    return this.http.get<Project[]>(`${this.baseUrl}/projects`);
+  }
+
+  getProject(id: string): Observable<Project> {
+    return this.http.get<Project>(`${this.baseUrl}/projects/${id}`);
+  }
+
+  createProject(request: ProjectRequest): Observable<Project> {
+    return this.http.post<Project>(`${this.baseUrl}/projects`, request);
+  }
+
+  updateProject(id: string, request: ProjectRequest): Observable<Project> {
+    return this.http.put<Project>(`${this.baseUrl}/projects/${id}`, request);
+  }
+
+  deleteProject(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/projects/${id}`);
   }
 
   // Service Groups

@@ -1,3 +1,22 @@
+export interface Project {
+  id: string;
+  name: string;
+  repoUrl?: string;
+  gitProvider?: 'GITHUB' | 'GITLAB' | 'BITBUCKET';
+  defaultBranch?: string;
+  apiKey: string;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProjectRequest {
+  name: string;
+  repoUrl?: string;
+  gitProvider?: string;
+  defaultBranch?: string;
+}
+
 export interface ServiceGroup {
   id: string;
   name: string;
