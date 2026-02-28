@@ -16,6 +16,10 @@ services:
       - CLAUDE_API_KEY=${CLAUDE_API_KEY:-}
       - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID:-}
       - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET:-}
+      - MONITORING_ENABLED=${MONITORING_ENABLED:-true}
+      - MONITORING_EMAIL_ENABLED=${MONITORING_EMAIL_ENABLED:-false}
+      - SENDGRID_API_KEY=${SENDGRID_API_KEY:-}
+      - FROM_EMAIL=${FROM_EMAIL:-no-reply@reddia-x.com}
     depends_on:
       postgres:
         condition: service_healthy
