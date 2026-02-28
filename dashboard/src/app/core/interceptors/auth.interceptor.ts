@@ -13,7 +13,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   
   const token = authService.getAccessToken();
   
-  if (token && req.url.startsWith(environment.apiUrl)) {
+  if (token && (req.url.startsWith(environment.apiUrl) || req.url.includes('/api/v1'))) {
     req = req.clone({
       setHeaders: {
         Authorization: `Bearer ${token}`
