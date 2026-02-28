@@ -5,14 +5,13 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
                             http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.20.xsd">
 
-    <changeSet id="003-add-backend-projects" author="loghealer">
+    <changeSet id="003-add-backend-projects-v2" author="loghealer">
         <!-- rdxs-backend -->
         <insert tableName="project">
             <column name="id" valueComputed="gen_random_uuid()"/>
+            <column name="tenant_id" value="00000000-0000-0000-0000-000000000001"/>
             <column name="name" value="rdxs-backend"/>
-            <column name="description" value="Škola Harmonike - Backend API"/>
             <column name="api_key" value="P8u541wiESeWdBRmlsGp2OcyInNZzrYL"/>
-            <column name="tenant_id" value="reddia-x"/>
             <column name="is_active" valueBoolean="true"/>
             <column name="created_at" valueComputed="NOW()"/>
         </insert>
@@ -20,10 +19,9 @@
         <!-- rdx-secure -->
         <insert tableName="project">
             <column name="id" valueComputed="gen_random_uuid()"/>
+            <column name="tenant_id" value="00000000-0000-0000-0000-000000000001"/>
             <column name="name" value="rdx-secure"/>
-            <column name="description" value="RdX Identity Provider"/>
             <column name="api_key" value="Kj7nQwXmL9pRtYhU2vBcFgDsAeZxNqWi"/>
-            <column name="tenant_id" value="reddia-x"/>
             <column name="is_active" valueBoolean="true"/>
             <column name="created_at" valueComputed="NOW()"/>
         </insert>
@@ -31,10 +29,9 @@
         <!-- rdx-video -->
         <insert tableName="project">
             <column name="id" valueComputed="gen_random_uuid()"/>
+            <column name="tenant_id" value="00000000-0000-0000-0000-000000000001"/>
             <column name="name" value="rdx-video"/>
-            <column name="description" value="RdX Video Platform Backend"/>
             <column name="api_key" value="Tm4xYjKlOpQrStUvWxYzAbCdEfGhIjMn"/>
-            <column name="tenant_id" value="reddia-x"/>
             <column name="is_active" valueBoolean="true"/>
             <column name="created_at" valueComputed="NOW()"/>
         </insert>
@@ -42,10 +39,9 @@
         <!-- rdx-monitoring -->
         <insert tableName="project">
             <column name="id" valueComputed="gen_random_uuid()"/>
+            <column name="tenant_id" value="00000000-0000-0000-0000-000000000001"/>
             <column name="name" value="rdx-monitoring"/>
-            <column name="description" value="RdX Monitoring Service"/>
             <column name="api_key" value="Hp6wRtYuIoPaSdFgHjKlZxCvBnMqWeRt"/>
-            <column name="tenant_id" value="reddia-x"/>
             <column name="is_active" valueBoolean="true"/>
             <column name="created_at" valueComputed="NOW()"/>
         </insert>
@@ -53,10 +49,9 @@
         <!-- rdx-band-backend -->
         <insert tableName="project">
             <column name="id" valueComputed="gen_random_uuid()"/>
+            <column name="tenant_id" value="00000000-0000-0000-0000-000000000001"/>
             <column name="name" value="rdx-band-backend"/>
-            <column name="description" value="Wedding Band Booking Platform Backend"/>
             <column name="api_key" value="Wy9oPlKjMnBvCxZaQwErTyUiOpAsDfGh"/>
-            <column name="tenant_id" value="reddia-x"/>
             <column name="is_active" valueBoolean="true"/>
             <column name="created_at" valueComputed="NOW()"/>
         </insert>
