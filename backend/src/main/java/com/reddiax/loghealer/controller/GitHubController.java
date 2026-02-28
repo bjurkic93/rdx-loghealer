@@ -73,9 +73,33 @@ public class GitHubController {
 
     @GetMapping("/repositories/{connectionId}")
     public ResponseEntity<List<Map<String, String>>> listRepositories(@PathVariable String connectionId) {
-        // For now, we need to get the access token from the connection
-        // This is a simplified implementation
-        return ResponseEntity.ok(List.of());
+        return gitHubService.getConnectionById(connectionId)
+                .map(connection -> {
+                    List<Map<String, String>> repos = gitHubService.listUserRepositories(connection.getAccessToken());
+                    return ResponseEntity.ok(repos);
+                })
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/repositories")
+    public ResponseEntity<List<Map<String, String>>> listAllRepositories() {
+        return gitHubService.getAnyActiveConnection()
+                .map(connection -> {
+                    List<Map<String, String>> repos = gitHubService.listUserRepositories(connection.getAccessToken());
+                    return ResponseEntity.ok(repos);
+                })
+                .orElse(ResponseEntity.ok(List.of()));
+    }
+
+    @GetMapping("/status")
+    public ResponseEntity<Map<String, Object>> getGitHubStatus() {
+        return gitHubService.getAnyActiveConnection()
+                .map(conn -> ResponseEntity.ok(Map.<String, Object>of(
+                        "connected", true,
+                        "githubUsername", conn.getGithubUsername() != null ? conn.getGithubUsername() : "",
+                        "connectionId", conn.getId()
+                )))
+                .orElse(ResponseEntity.ok(Map.of("connected", false)));
     }
 
     @GetMapping("/connection/{projectId}")

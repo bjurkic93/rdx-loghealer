@@ -370,4 +370,13 @@ public class GitHubService {
     public Optional<GitHubConnection> getConnectionForProject(String projectId) {
         return connectionRepository.findByProjectIdAndIsActiveTrue(projectId);
     }
+
+    public Optional<GitHubConnection> getConnectionById(String connectionId) {
+        return connectionRepository.findById(connectionId)
+                .filter(GitHubConnection::isActive);
+    }
+
+    public Optional<GitHubConnection> getAnyActiveConnection() {
+        return connectionRepository.findFirstByIsActiveTrueOrderByCreatedAtDesc();
+    }
 }

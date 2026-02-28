@@ -14,4 +14,6 @@ public interface GitHubConnectionRepository extends JpaRepository<GitHubConnecti
     Optional<GitHubConnection> findByRepositoryFullNameAndIsActiveTrue(String repositoryFullName);
     
     boolean existsByProjectIdAndIsActiveTrue(String projectId);
+
+    Optional<GitHubConnection> findFirstByIsActiveTrueOrderByCreatedAtDesc();
 }

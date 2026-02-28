@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '../../core/services/api.service';
 import { ServiceGroup, ServiceGroupRequest, DatabaseConnectionRequest, Project, ProjectRequest } from '../../core/models/service-group.model';
+import { GitHubRepository } from '../../core/models/github.model';
 
 @Component({
   selector: 'app-service-groups',
@@ -16,6 +17,10 @@ export class ServiceGroupsComponent implements OnInit {
 
   serviceGroups: ServiceGroup[] = [];
   projects: Project[] = [];
+  githubRepos: GitHubRepository[] = [];
+  githubConnected = false;
+  githubUsername = '';
+  loadingRepos = false;
   loading = false;
   error: string | null = null;
 
@@ -23,6 +28,9 @@ export class ServiceGroupsComponent implements OnInit {
   showEditModal = false;
   showProjectModal = false;
   editingGroup: ServiceGroup | null = null;
+
+  repoSearchTerm = '';
+  selectedRepo: GitHubRepository | null = null;
 
   formData: ServiceGroupRequest = {
     name: '',
@@ -50,6 +58,7 @@ export class ServiceGroupsComponent implements OnInit {
   ngOnInit(): void {
     this.loadServiceGroups();
     this.loadProjects();
+    this.checkGitHubStatus();
   }
 
   loadServiceGroups(): void {
@@ -78,6 +87,51 @@ export class ServiceGroupsComponent implements OnInit {
         console.error('Error loading projects:', err);
       }
     });
+  }
+
+  checkGitHubStatus(): void {
+    this.apiService.getGitHubStatus().subscribe({
+      next: (status) => {
+        this.githubConnected = status.connected;
+        this.githubUsername = status.githubUsername || '';
+        if (status.connected) {
+          this.loadGitHubRepos();
+        }
+      },
+      error: (err) => {
+        console.error('Error checking GitHub status:', err);
+      }
+    });
+  }
+
+  loadGitHubRepos(): void {
+    this.loadingRepos = true;
+    this.apiService.getGitHubRepositories().subscribe({
+      next: (repos) => {
+        this.githubRepos = repos;
+        this.loadingRepos = false;
+      },
+      error: (err) => {
+        console.error('Error loading GitHub repos:', err);
+        this.loadingRepos = false;
+      }
+    });
+  }
+
+  get filteredRepos(): GitHubRepository[] {
+    if (!this.repoSearchTerm) return this.githubRepos.slice(0, 10);
+    const term = this.repoSearchTerm.toLowerCase();
+    return this.githubRepos
+      .filter(r => r.fullName.toLowerCase().includes(term) || r.name.toLowerCase().includes(term))
+      .slice(0, 10);
+  }
+
+  selectRepo(repo: GitHubRepository): void {
+    this.selectedRepo = repo;
+    this.newProject.name = repo.name;
+    this.newProject.repoUrl = `https://github.com/${repo.fullName}`;
+    this.newProject.defaultBranch = repo.defaultBranch;
+    this.repoSearchTerm = repo.fullName;
   }
 
   openCreateModal(): void {
