@@ -17,8 +17,21 @@ import { interval, Subject, takeUntil } from 'rxjs';
           <span class="last-updated" *ngIf="lastUpdated">
             Last updated: {{ lastUpdated | date:'HH:mm:ss' }}
           </span>
-          <button class="btn btn-secondary" (click)="refresh()">Refresh</button>
-          <a routerLink="/monitoring/services" class="btn btn-primary">Manage Services</a>
+          <button class="btn btn-secondary" (click)="refresh()">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/>
+              <path d="M21 3v5h-5"/>
+            </svg>
+            Refresh
+          </button>
+          <a routerLink="/monitoring/services" class="btn btn-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+              <line x1="8" y1="21" x2="16" y2="21"/>
+              <line x1="12" y1="17" x2="12" y2="21"/>
+            </svg>
+            Manage Services
+          </a>
         </div>
       </div>
 
@@ -28,29 +41,52 @@ import { interval, Subject, takeUntil } from 'rxjs';
         </div>
       } @else if (summary) {
         <div class="stats-grid">
-          <div class="stat-card" [class.info]="true">
-            <div class="stat-icon">S</div>
+          <div class="stat-card info">
+            <div class="stat-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/>
+                <line x1="8" y1="21" x2="16" y2="21"/>
+                <line x1="12" y1="17" x2="12" y2="21"/>
+              </svg>
+            </div>
             <div class="stat-content">
               <span class="stat-label">Total Services</span>
               <span class="stat-value">{{ summary.totalServices }}</span>
             </div>
           </div>
-          <div class="stat-card" [class.success]="true">
-            <div class="stat-icon">+</div>
+          <div class="stat-card success">
+            <div class="stat-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                <polyline points="22 4 12 14.01 9 11.01"/>
+              </svg>
+            </div>
             <div class="stat-content">
               <span class="stat-label">Services Up</span>
               <span class="stat-value">{{ summary.servicesUp }}</span>
             </div>
           </div>
-          <div class="stat-card" [class.danger]="true">
-            <div class="stat-icon">-</div>
+          <div class="stat-card danger">
+            <div class="stat-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="15" y1="9" x2="9" y2="15"/>
+                <line x1="9" y1="9" x2="15" y2="15"/>
+              </svg>
+            </div>
             <div class="stat-content">
               <span class="stat-label">Services Down</span>
               <span class="stat-value">{{ summary.servicesDown }}</span>
             </div>
           </div>
           <div class="stat-card" [class.warning]="summary.activeAlerts > 0" [class.success]="summary.activeAlerts === 0">
-            <div class="stat-icon">!</div>
+            <div class="stat-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+                <line x1="12" y1="9" x2="12" y2="13"/>
+                <line x1="12" y1="17" x2="12.01" y2="17"/>
+              </svg>
+            </div>
             <div class="stat-content">
               <span class="stat-label">Active Alerts</span>
               <span class="stat-value">{{ summary.activeAlerts }}</span>
@@ -121,7 +157,12 @@ import { interval, Subject, takeUntil } from 'rxjs';
             <div class="alerts-list">
               @if (summary.recentAlerts.length === 0) {
                 <div class="empty-state success">
-                  <span class="success-icon">OK</span>
+                  <span class="success-icon">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                      <polyline points="22 4 12 14.01 9 11.01"/>
+                    </svg>
+                  </span>
                   <h3>All Clear</h3>
                   <p>No active alerts</p>
                 </div>
@@ -129,7 +170,15 @@ import { interval, Subject, takeUntil } from 'rxjs';
                 @for (alert of summary.recentAlerts; track alert.id) {
                   <div class="alert-item" [class.resolved]="alert.isResolved">
                     <div class="alert-icon" [class]="alert.alertType.toLowerCase()">
-                      {{ getAlertIcon(alert.alertType) }}
+                      <svg *ngIf="alert.alertType === 'DOWNTIME'" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+                      </svg>
+                      <svg *ngIf="alert.alertType === 'SLOW_RESPONSE'" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                      </svg>
+                      <svg *ngIf="alert.alertType === 'ERROR_RATE'" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                      </svg>
                     </div>
                     <div class="alert-content">
                       <div class="alert-header">
@@ -151,29 +200,35 @@ import { interval, Subject, takeUntil } from 'rxjs';
   styles: [`
     .monitoring-dashboard {
       padding: 24px;
+      max-width: 1600px;
+      margin: 0 auto;
     }
     
     .page-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 24px;
+      margin-bottom: 32px;
       
       h1 {
         font-size: 28px;
         font-weight: 700;
+        color: var(--text-primary);
       }
     }
     
     .header-actions {
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 12px;
     }
     
     .last-updated {
       color: var(--text-muted);
       font-size: 13px;
+      padding: 8px 12px;
+      background: var(--bg-tertiary);
+      border-radius: 6px;
     }
     
     .loading-container {
@@ -185,34 +240,39 @@ import { interval, Subject, takeUntil } from 'rxjs';
     .stats-grid {
       display: grid;
       grid-template-columns: repeat(4, 1fr);
-      gap: 16px;
-      margin-bottom: 24px;
+      gap: 20px;
+      margin-bottom: 28px;
     }
     
     .stat-card {
       display: flex;
       align-items: center;
       gap: 16px;
-      padding: 20px;
+      padding: 24px;
       background: var(--bg-secondary);
-      border-radius: 12px;
+      border-radius: 16px;
       border: 1px solid var(--border-color);
+      transition: all 0.2s ease;
+      
+      &:hover {
+        border-color: var(--border-hover);
+        transform: translateY(-2px);
+      }
     }
     
     .stat-icon {
-      width: 48px;
-      height: 48px;
-      border-radius: 12px;
+      width: 52px;
+      height: 52px;
+      border-radius: 14px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 20px;
-      font-weight: 700;
+      flex-shrink: 0;
     }
     
     .stat-card.info .stat-icon {
-      background: rgba(59, 130, 246, 0.15);
-      color: var(--info);
+      background: rgba(99, 102, 241, 0.15);
+      color: var(--primary);
     }
     
     .stat-card.success .stat-icon {
@@ -238,33 +298,35 @@ import { interval, Subject, takeUntil } from 'rxjs';
     .stat-label {
       font-size: 13px;
       color: var(--text-secondary);
-      margin-bottom: 4px;
+      margin-bottom: 6px;
+      font-weight: 500;
     }
     
     .stat-value {
-      font-size: 28px;
+      font-size: 32px;
       font-weight: 700;
+      color: var(--text-primary);
     }
     
     .uptime-banner {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 20px 24px;
+      padding: 24px 28px;
       background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
-      border-radius: 12px;
+      border-radius: 16px;
       border: 1px solid var(--border-color);
-      margin-bottom: 24px;
+      margin-bottom: 28px;
     }
     
     .uptime-label {
       font-size: 16px;
-      font-weight: 500;
+      font-weight: 600;
       color: var(--text-secondary);
     }
     
     .uptime-value {
-      font-size: 32px;
+      font-size: 36px;
       font-weight: 700;
       
       &.good { color: var(--success); }
@@ -282,11 +344,12 @@ import { interval, Subject, takeUntil } from 'rxjs';
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 16px;
+      margin-bottom: 20px;
       
       h2 {
         font-size: 18px;
         font-weight: 600;
+        color: var(--text-primary);
       }
     }
     
@@ -297,9 +360,9 @@ import { interval, Subject, takeUntil } from 'rxjs';
     }
     
     .service-card {
-      padding: 20px;
+      padding: 20px 24px;
       background: var(--bg-secondary);
-      border-radius: 12px;
+      border-radius: 14px;
       border: 1px solid var(--border-color);
       cursor: pointer;
       transition: all 0.2s ease;
@@ -307,6 +370,7 @@ import { interval, Subject, takeUntil } from 'rxjs';
       &:hover {
         border-color: var(--primary);
         transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
       }
     }
     
@@ -314,11 +378,12 @@ import { interval, Subject, takeUntil } from 'rxjs';
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
       
       h3 {
         font-size: 16px;
         font-weight: 600;
+        color: var(--text-primary);
       }
     }
     
@@ -326,10 +391,12 @@ import { interval, Subject, takeUntil } from 'rxjs';
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 4px 10px;
+      padding: 5px 12px;
       border-radius: 20px;
       font-size: 12px;
-      font-weight: 500;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
       
       .dot {
         width: 8px;
@@ -373,7 +440,7 @@ import { interval, Subject, takeUntil } from 'rxjs';
     
     .service-stats {
       display: flex;
-      gap: 24px;
+      gap: 32px;
     }
     
     .service-stats .stat {
@@ -385,11 +452,13 @@ import { interval, Subject, takeUntil } from 'rxjs';
       font-size: 12px;
       color: var(--text-muted);
       margin-bottom: 4px;
+      font-weight: 500;
     }
     
     .service-stats .stat-value {
       font-size: 16px;
       font-weight: 600;
+      color: var(--text-primary);
       
       &.good { color: var(--success); }
       &.warning { color: var(--warning); }
@@ -398,7 +467,7 @@ import { interval, Subject, takeUntil } from 'rxjs';
     
     .alerts-list {
       background: var(--bg-secondary);
-      border-radius: 12px;
+      border-radius: 14px;
       border: 1px solid var(--border-color);
       overflow: hidden;
     }
@@ -411,31 +480,37 @@ import { interval, Subject, takeUntil } from 'rxjs';
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 48px;
-        height: 48px;
+        width: 56px;
+        height: 56px;
         background: rgba(34, 197, 94, 0.15);
         color: var(--success);
         border-radius: 50%;
-        font-weight: 700;
-        margin-bottom: 12px;
+        margin-bottom: 16px;
       }
       
       h3 {
         font-size: 16px;
-        margin-bottom: 4px;
+        font-weight: 600;
+        margin-bottom: 6px;
+        color: var(--text-primary);
       }
       
       p {
-        font-size: 13px;
+        font-size: 14px;
         color: var(--text-muted);
       }
     }
     
     .alert-item {
       display: flex;
-      gap: 12px;
-      padding: 16px;
+      gap: 14px;
+      padding: 16px 20px;
       border-bottom: 1px solid var(--border-color);
+      transition: background 0.15s ease;
+      
+      &:hover {
+        background: rgba(99, 102, 241, 0.05);
+      }
       
       &:last-child {
         border-bottom: none;
@@ -447,13 +522,12 @@ import { interval, Subject, takeUntil } from 'rxjs';
     }
     
     .alert-icon {
-      width: 36px;
-      height: 36px;
-      border-radius: 8px;
+      width: 40px;
+      height: 40px;
+      border-radius: 10px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-weight: 700;
       flex-shrink: 0;
       
       &.downtime {
@@ -481,26 +555,30 @@ import { interval, Subject, takeUntil } from 'rxjs';
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
     }
     
     .alert-service {
       font-weight: 600;
       font-size: 14px;
+      color: var(--text-primary);
     }
     
     .alert-type {
-      font-size: 11px;
-      padding: 2px 8px;
+      font-size: 10px;
+      padding: 3px 8px;
       background: var(--bg-tertiary);
       border-radius: 4px;
       color: var(--text-secondary);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
     
     .alert-message {
       font-size: 13px;
       color: var(--text-secondary);
-      margin-bottom: 4px;
+      margin-bottom: 6px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;

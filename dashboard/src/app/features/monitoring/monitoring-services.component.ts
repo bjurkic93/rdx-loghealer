@@ -17,7 +17,12 @@ import { MonitoredService, ServiceCreateDto } from '../../core/models/monitoring
           <span>/</span>
           <span>Services</span>
         </div>
-        <button class="btn btn-primary" (click)="openAddModal()">Add Service</button>
+        <button class="btn btn-primary" (click)="openAddModal()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
+          Add Service
+        </button>
       </div>
 
       @if (loading) {
@@ -147,31 +152,38 @@ import { MonitoredService, ServiceCreateDto } from '../../core/models/monitoring
   styles: [`
     .monitoring-services {
       padding: 24px;
+      max-width: 1400px;
+      margin: 0 auto;
     }
     
     .page-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 24px;
+      margin-bottom: 28px;
     }
     
     .breadcrumb {
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 10px;
       font-size: 14px;
       
       a {
         color: var(--text-secondary);
         text-decoration: none;
+        transition: color 0.15s ease;
         &:hover { color: var(--primary); }
+      }
+      
+      span:not(:last-child) {
+        color: var(--text-muted);
       }
       
       span:last-child {
         color: var(--text-primary);
         font-weight: 600;
-        font-size: 20px;
+        font-size: 22px;
       }
     }
     
@@ -184,32 +196,37 @@ import { MonitoredService, ServiceCreateDto } from '../../core/models/monitoring
     .services-table {
       padding: 0;
       overflow: hidden;
+      border-radius: 14px;
     }
     
     .service-name {
       color: var(--primary);
       text-decoration: none;
-      font-weight: 500;
-      &:hover { text-decoration: underline; }
+      font-weight: 600;
+      transition: color 0.15s ease;
+      &:hover { color: var(--primary-hover); }
     }
     
     .url-cell {
-      max-width: 200px;
+      max-width: 220px;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      color: var(--text-secondary);
+      color: var(--text-muted);
       font-size: 13px;
+      font-family: monospace;
     }
     
     .status-badge {
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      padding: 4px 10px;
+      padding: 5px 12px;
       border-radius: 20px;
-      font-size: 12px;
-      font-weight: 500;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
       
       .dot {
         width: 8px;
@@ -242,9 +259,9 @@ import { MonitoredService, ServiceCreateDto } from '../../core/models/monitoring
       }
     }
     
-    .good { color: var(--success); }
-    .warning { color: var(--warning); }
-    .bad { color: var(--danger); }
+    .good { color: var(--success); font-weight: 600; }
+    .warning { color: var(--warning); font-weight: 600; }
+    .bad { color: var(--danger); font-weight: 600; }
     
     .actions {
       display: flex;
@@ -258,11 +275,18 @@ import { MonitoredService, ServiceCreateDto } from '../../core/models/monitoring
     }
     
     .empty-state {
-      padding: 48px;
+      padding: 64px;
       text-align: center;
       
-      h3 { margin-bottom: 8px; }
-      p { color: var(--text-muted); }
+      h3 { 
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: var(--text-primary);
+      }
+      p { 
+        color: var(--text-muted);
+        font-size: 14px;
+      }
     }
   `]
 })
