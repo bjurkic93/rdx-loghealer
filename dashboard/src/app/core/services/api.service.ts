@@ -7,7 +7,7 @@ import { LogSearchRequest, LogSearchResponse } from '../models/log.model';
 import { ExceptionGroup } from '../models/exception.model';
 import { AiAnalysisResponse, AiProviders } from '../models/ai.model';
 import { GitHubConnection, PullRequestResponse } from '../models/github.model';
-import { ServiceGroup, ServiceGroupRequest, TraceTimeline, Project, ProjectRequest } from '../models/service-group.model';
+import { ServiceGroup, ServiceGroupRequest, TraceTimeline, Project, ProjectRequest, DiscoveryRequest, DiscoveryResponse } from '../models/service-group.model';
 import {
   MonitoredService,
   ServiceCreateDto,
@@ -143,6 +143,15 @@ export class ApiService {
 
   deleteProject(id: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/projects/${id}`);
+  }
+
+  discoverProjectFromLog(request: DiscoveryRequest): Observable<DiscoveryResponse> {
+    return this.http.post<DiscoveryResponse>(`${this.baseUrl}/projects/discover`, request);
+  }
+
+  discoverProjectFromPackage(packageName: string): Observable<DiscoveryResponse> {
+    const params = new HttpParams().set('packageName', packageName);
+    return this.http.get<DiscoveryResponse>(`${this.baseUrl}/projects/discover/package`, { params });
   }
 
   // Service Groups

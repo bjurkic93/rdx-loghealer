@@ -111,6 +111,7 @@
             <div class="project-info">
               <span class="project-name">{{ project.name }}</span>
               <span class="project-repo" *ngIf="project.repoUrl">{{ project.repoUrl }}</span>
+              <span class="project-package" *ngIf="project.packagePrefix">📦 {{ project.packagePrefix }}</span>
             </div>
             <span class="project-provider" *ngIf="project.gitProvider">{{ project.gitProvider }}</span>
             <span class="checkmark" *ngIf="isProjectSelected(project.id)">✓</span>
@@ -186,6 +187,7 @@
             <div class="project-info">
               <span class="project-name">{{ project.name }}</span>
               <span class="project-repo" *ngIf="project.repoUrl">{{ project.repoUrl }}</span>
+              <span class="project-package" *ngIf="project.packagePrefix">📦 {{ project.packagePrefix }}</span>
             </div>
             <span class="project-provider" *ngIf="project.gitProvider">{{ project.gitProvider }}</span>
             <span class="checkmark" *ngIf="isProjectSelected(project.id)">✓</span>
@@ -261,6 +263,12 @@
       <div class="form-group">
         <label for="default-branch">Default Branch</label>
         <input type="text" id="default-branch" [(ngModel)]="newProject.defaultBranch" placeholder="main">
+      </div>
+
+      <div class="form-group">
+        <label for="package-prefix">Package Prefix (for auto-discovery)</label>
+        <input type="text" id="package-prefix" [(ngModel)]="newProject.packagePrefix" placeholder="e.g., com.reddiax.school">
+        <span class="hint">Used to auto-detect this project from log entries</span>
       </div>
     </div>
 

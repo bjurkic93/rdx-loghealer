@@ -40,7 +40,8 @@ export class ServiceGroupsComponent implements OnInit {
     name: '',
     repoUrl: '',
     gitProvider: 'GITHUB',
-    defaultBranch: 'main'
+    defaultBranch: 'main',
+    packagePrefix: ''
   };
 
   dbTypes = ['POSTGRESQL', 'MYSQL', 'MARIADB', 'MONGODB', 'REDIS', 'ELASTICSEARCH'];
@@ -119,7 +120,8 @@ export class ServiceGroupsComponent implements OnInit {
       name: '',
       repoUrl: '',
       gitProvider: 'GITHUB',
-      defaultBranch: 'main'
+      defaultBranch: 'main',
+      packagePrefix: ''
     };
     this.showProjectModal = true;
   }
@@ -133,7 +135,7 @@ export class ServiceGroupsComponent implements OnInit {
         this.formData.projectIds = this.formData.projectIds || [];
         this.formData.projectIds.push(project.id);
         this.showProjectModal = false;
-        this.newProject = { name: '', repoUrl: '', gitProvider: 'GITHUB', defaultBranch: 'main' };
+        this.newProject = { name: '', repoUrl: '', gitProvider: 'GITHUB', defaultBranch: 'main', packagePrefix: '' };
       },
       error: (err) => {
         this.error = 'Failed to create project';

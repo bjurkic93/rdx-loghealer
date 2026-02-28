@@ -4,6 +4,7 @@ export interface Project {
   repoUrl?: string;
   gitProvider?: 'GITHUB' | 'GITLAB' | 'BITBUCKET';
   defaultBranch?: string;
+  packagePrefix?: string;
   apiKey: string;
   active: boolean;
   createdAt: string;
@@ -15,6 +16,19 @@ export interface ProjectRequest {
   repoUrl?: string;
   gitProvider?: string;
   defaultBranch?: string;
+  packagePrefix?: string;
+}
+
+export interface DiscoveryRequest {
+  logger?: string;
+  message?: string;
+  stackTrace?: string;
+}
+
+export interface DiscoveryResponse {
+  found: boolean;
+  project?: Project;
+  suggestedPackagePrefix?: string;
 }
 
 export interface ServiceGroup {

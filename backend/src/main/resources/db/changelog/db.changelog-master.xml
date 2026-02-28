@@ -10,5 +10,6 @@
     <include file="db/changelog/003-add-backend-projects.xml"/>
     <include file="db/changelog/004-service-groups.xml"/>
     <include file="db/changelog/005-monitoring-tables.xml"/>
+    <include file="db/changelog/006-project-package-prefix.xml"/>
 
 </databaseChangeLog>

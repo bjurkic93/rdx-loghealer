@@ -36,6 +36,9 @@ public class Project {
     @Column(name = "default_branch")
     private String defaultBranch;
 
+    @Column(name = "package_prefix")
+    private String packagePrefix;
+
     @Column(name = "api_key", nullable = false, unique = true)
     private String apiKey;
 

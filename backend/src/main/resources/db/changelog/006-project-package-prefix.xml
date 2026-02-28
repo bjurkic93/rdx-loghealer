@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="006-1" author="loghealer">
+        <comment>Add package_prefix column to project table for auto-discovery</comment>
+        <addColumn tableName="project">
+            <column name="package_prefix" type="VARCHAR(255)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="006-2" author="loghealer">
+        <comment>Add index on package_prefix for faster lookups</comment>
+        <createIndex tableName="project" indexName="idx_project_package_prefix">
+            <column name="package_prefix"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

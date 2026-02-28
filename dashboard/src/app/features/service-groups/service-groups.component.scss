@@ -348,6 +348,13 @@
     min-height: 80px;
     resize: vertical;
   }
+
+  .hint {
+    display: block;
+    margin-top: 4px;
+    font-size: 12px;
+    color: #9ca3af;
+  }
 }
 
 // Project list styles
@@ -397,6 +404,13 @@
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+      }
+
+      .project-package {
+        display: block;
+        font-size: 11px;
+        color: #8b5cf6;
+        font-family: monospace;
       }
     }
 
