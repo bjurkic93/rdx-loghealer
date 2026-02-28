@@ -103,10 +103,15 @@ jobs:
             docker image prune -af
             
             # Wait a bit for containers to start
-            sleep 10
+            sleep 15
             
             # Show container status
             echo "Container status:"
             docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}"
+            
+            # Show backend logs (last 50 lines)
+            echo ""
+            echo "Backend logs (last 50 lines):"
+            docker compose -f docker-compose.prod.yml logs backend --tail=50
             
             echo "✅ Deployment complete!"
