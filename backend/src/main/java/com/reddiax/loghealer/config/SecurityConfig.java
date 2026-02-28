@@ -35,6 +35,8 @@ public class SecurityConfig {
                 .requestMatchers("/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                 // Log ingestion - API key auth (handled separately)
                 .requestMatchers(HttpMethod.POST, "/api/v1/logs", "/api/v1/logs/batch").permitAll()
+                // Event ingestion - API key auth
+                .requestMatchers(HttpMethod.POST, "/api/v1/events/**").permitAll()
                 // Dashboard & Search - temporarily open for development
                 .requestMatchers("/api/v1/dashboard/**").permitAll()
                 .requestMatchers("/api/v1/logs/search").permitAll()

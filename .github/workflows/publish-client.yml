@@ -1,9 +1,10 @@
-name: Publish LogHealer Client
+name: Publish LogHealer Libraries
 
 on:
   push:
     paths:
       - 'loghealer-client/**'
+      - 'loghealer-spring-boot-starter/**'
     branches:
       - master
   workflow_dispatch:
@@ -39,9 +40,17 @@ jobs:
           </settings>
           EOF
 
-      - name: Publish to GitHub Packages
+      - name: Publish loghealer-client
         run: |
           cd loghealer-client
+          mvn deploy -DskipTests
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_ACTOR: ${{ github.actor }}
+
+      - name: Publish loghealer-spring-boot-starter
+        run: |
+          cd loghealer-spring-boot-starter
           mvn deploy -DskipTests
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
