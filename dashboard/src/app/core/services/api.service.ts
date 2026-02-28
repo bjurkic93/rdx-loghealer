@@ -8,6 +8,17 @@ import { ExceptionGroup } from '../models/exception.model';
 import { AiAnalysisResponse, AiProviders } from '../models/ai.model';
 import { GitHubConnection, PullRequestResponse } from '../models/github.model';
 import { ServiceGroup, ServiceGroupRequest, TraceTimeline } from '../models/service-group.model';
+import {
+  MonitoredService,
+  ServiceCreateDto,
+  HealthCheck,
+  AlertRule,
+  AlertRuleCreateDto,
+  AlertHistory,
+  DashboardSummary,
+  ServiceMetrics,
+  Page
+} from '../models/monitoring.model';
 
 @Injectable({
   providedIn: 'root'
@@ -146,5 +157,80 @@ export class ApiService {
   getRelatedTraces(exceptionGroupId: string, limit = 5): Observable<TraceTimeline[]> {
     const params = new HttpParams().set('limit', String(limit));
     return this.http.get<TraceTimeline[]>(`${this.baseUrl}/traces/exception/${exceptionGroupId}/related`, { params });
+  }
+
+  // Monitoring
+  getMonitoringDashboard(): Observable<DashboardSummary> {
+    return this.http.get<DashboardSummary>(`${this.baseUrl}/monitoring/dashboard/summary`);
+  }
+
+  getMonitoringServiceMetrics(serviceId: number): Observable<ServiceMetrics> {
+    return this.http.get<ServiceMetrics>(`${this.baseUrl}/monitoring/dashboard/metrics/${serviceId}`);
+  }
+
+  getMonitoredServices(): Observable<MonitoredService[]> {
+    return this.http.get<MonitoredService[]>(`${this.baseUrl}/monitoring/services`);
+  }
+
+  getMonitoredService(id: number): Observable<MonitoredService> {
+    return this.http.get<MonitoredService>(`${this.baseUrl}/monitoring/services/${id}`);
+  }
+
+  createMonitoredService(dto: ServiceCreateDto): Observable<MonitoredService> {
+    return this.http.post<MonitoredService>(`${this.baseUrl}/monitoring/services`, dto);
+  }
+
+  updateMonitoredService(id: number, dto: ServiceCreateDto): Observable<MonitoredService> {
+    return this.http.put<MonitoredService>(`${this.baseUrl}/monitoring/services/${id}`, dto);
+  }
+
+  deleteMonitoredService(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/monitoring/services/${id}`);
+  }
+
+  toggleMonitoredService(id: number): Observable<MonitoredService> {
+    return this.http.patch<MonitoredService>(`${this.baseUrl}/monitoring/services/${id}/toggle`, {});
+  }
+
+  triggerHealthCheck(id: number): Observable<HealthCheck> {
+    return this.http.post<HealthCheck>(`${this.baseUrl}/monitoring/services/${id}/check`, {});
+  }
+
+  getHealthCheckHistory(serviceId: number, limit = 100): Observable<HealthCheck[]> {
+    const params = new HttpParams().set('limit', String(limit));
+    return this.http.get<HealthCheck[]>(`${this.baseUrl}/monitoring/services/${serviceId}/history`, { params });
+  }
+
+  getAlertRules(): Observable<AlertRule[]> {
+    return this.http.get<AlertRule[]>(`${this.baseUrl}/monitoring/alerts/rules`);
+  }
+
+  getAlertRulesForService(serviceId: number): Observable<AlertRule[]> {
+    return this.http.get<AlertRule[]>(`${this.baseUrl}/monitoring/alerts/rules/service/${serviceId}`);
+  }
+
+  createAlertRule(dto: AlertRuleCreateDto): Observable<AlertRule> {
+    return this.http.post<AlertRule>(`${this.baseUrl}/monitoring/alerts/rules`, dto);
+  }
+
+  updateAlertRule(id: number, dto: AlertRuleCreateDto): Observable<AlertRule> {
+    return this.http.put<AlertRule>(`${this.baseUrl}/monitoring/alerts/rules/${id}`, dto);
+  }
+
+  deleteAlertRule(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/monitoring/alerts/rules/${id}`);
+  }
+
+  toggleAlertRule(id: number): Observable<AlertRule> {
+    return this.http.patch<AlertRule>(`${this.baseUrl}/monitoring/alerts/rules/${id}/toggle`, {});
+  }
+
+  getAlertHistory(page = 0, size = 20): Observable<Page<AlertHistory>> {
+    const params = new HttpParams().set('page', String(page)).set('size', String(size));
+    return this.http.get<Page<AlertHistory>>(`${this.baseUrl}/monitoring/alerts/history`, { params });
+  }
+
+  getActiveAlerts(): Observable<AlertHistory[]> {
+    return this.http.get<AlertHistory[]>(`${this.baseUrl}/monitoring/alerts/active`);
   }
 }

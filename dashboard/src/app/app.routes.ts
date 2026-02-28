@@ -51,6 +51,26 @@ export const routes: Routes = [
     canActivate: [authGuard]
   },
   {
+    path: 'monitoring',
+    loadComponent: () => import('./features/monitoring/monitoring-dashboard.component').then(m => m.MonitoringDashboardComponent),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'monitoring/services',
+    loadComponent: () => import('./features/monitoring/monitoring-services.component').then(m => m.MonitoringServicesComponent),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'monitoring/services/:id',
+    loadComponent: () => import('./features/monitoring/monitoring-service-detail.component').then(m => m.MonitoringServiceDetailComponent),
+    canActivate: [authGuard]
+  },
+  {
+    path: 'monitoring/alerts',
+    loadComponent: () => import('./features/monitoring/monitoring-alerts.component').then(m => m.MonitoringAlertsComponent),
+    canActivate: [authGuard]
+  },
+  {
     path: '**',
     redirectTo: 'dashboard'
   }

@@ -89,3 +89,11 @@ loghealer:
   github:
     client-id: ${GITHUB_CLIENT_ID:}
     client-secret: ${GITHUB_CLIENT_SECRET:}
+  email:
+    sendgrid-apikey: ${SENDGRID_API_KEY:}
+    from: ${FROM_EMAIL:no-reply@reddia-x.com}
+  monitoring:
+    enabled: ${MONITORING_ENABLED:false}
+    default-check-interval-seconds: 30
+    email:
+      enabled: ${MONITORING_EMAIL_ENABLED:false}

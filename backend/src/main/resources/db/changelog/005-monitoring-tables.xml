@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                   https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="create-monitored-service-table" author="loghealer">
+        <createTable tableName="monitored_service">
+            <column name="id" type="bigserial">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="varchar(500)"/>
+            <column name="url" type="varchar(500)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="health_endpoint" type="varchar(200)">
+                <constraints nullable="false" />
+            </column>
+            <column name="check_interval_seconds" type="int" defaultValueNumeric="30">
+                <constraints nullable="false"/>
+            </column>
+            <column name="timeout_ms" type="int" defaultValueNumeric="5000">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_active" type="boolean" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamptz" defaultValueComputed="NOW()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamptz" defaultValueComputed="NOW()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="monitored_service" indexName="idx_monitored_service_is_active">
+            <column name="is_active"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="create-health-check-table" author="loghealer">
+        <createTable tableName="health_check">
+            <column name="id" type="bigserial">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="service_id" type="bigint">
+                <constraints nullable="false" foreignKeyName="fk_health_check_service" 
+                             references="monitored_service(id)" deleteCascade="true"/>
+            </column>
+            <column name="status" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="response_time_ms" type="int"/>
+            <column name="status_code" type="int"/>
+            <column name="error_message" type="text"/>
+            <column name="checked_at" type="timestamptz" defaultValueComputed="NOW()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="health_check" indexName="idx_health_check_service_id">
+            <column name="service_id"/>
+        </createIndex>
+
+        <createIndex tableName="health_check" indexName="idx_health_check_checked_at">
+            <column name="checked_at"/>
+        </createIndex>
+
+        <createIndex tableName="health_check" indexName="idx_health_check_service_checked">
+            <column name="service_id"/>
+            <column name="checked_at" descending="true"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="create-alert-rule-table" author="loghealer">
+        <createTable tableName="alert_rule">
+            <column name="id" type="bigserial">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="service_id" type="bigint">
+                <constraints nullable="false" foreignKeyName="fk_alert_rule_service" 
+                             references="monitored_service(id)" deleteCascade="true"/>
+            </column>
+            <column name="name" type="varchar(100)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="rule_type" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="threshold_value" type="int">
+                <constraints nullable="false"/>
+            </column>
+            <column name="consecutive_failures" type="int" defaultValueNumeric="1">
+                <constraints nullable="false"/>
+            </column>
+            <column name="notify_emails" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="cooldown_minutes" type="int" defaultValueNumeric="15">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_active" type="boolean" defaultValueBoolean="true">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="timestamptz" defaultValueComputed="NOW()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="timestamptz" defaultValueComputed="NOW()">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createIndex tableName="alert_rule" indexName="idx_alert_rule_service_id">
+            <column name="service_id"/>
+        </createIndex>
+
+        <createIndex tableName="alert_rule" indexName="idx_alert_rule_is_active">
+            <column name="is_active"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="create-alert-history-table" author="loghealer">
+        <createTable tableName="alert_history">
+            <column name="id" type="bigserial">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="rule_id" type="bigint">
+                <constraints nullable="false" foreignKeyName="fk_alert_history_rule" 
+                             references="alert_rule(id)" deleteCascade="true"/>
+            </column>
+            <column name="service_id" type="bigint">
+                <constraints nullable="false" foreignKeyName="fk_alert_history_service" 
+                             references="monitored_service(id)" deleteCascade="true"/>
+            </column>
+            <column name="alert_type" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="message" type="text">
+                <constraints nullable="false"/>
+            </column>
+            <column name="triggered_at" type="timestamptz" defaultValueComputed="NOW()">
+                <constraints nullable="false"/>
+            </column>
+            <column name="resolved_at" type="timestamptz"/>
+            <column name="notification_sent" type="boolean" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="notification_sent_at" type="timestamptz"/>
+        </createTable>
+
+        <createIndex tableName="alert_history" indexName="idx_alert_history_rule_id">
+            <column name="rule_id"/>
+        </createIndex>
+
+        <createIndex tableName="alert_history" indexName="idx_alert_history_service_id">
+            <column name="service_id"/>
+        </createIndex>
+
+        <createIndex tableName="alert_history" indexName="idx_alert_history_triggered_at">
+            <column name="triggered_at" descending="true"/>
+        </createIndex>
+
+        <createIndex tableName="alert_history" indexName="idx_alert_history_resolved">
+            <column name="resolved_at"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>
