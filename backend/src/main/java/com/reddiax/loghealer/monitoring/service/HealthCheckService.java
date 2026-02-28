@@ -4,8 +4,8 @@ import com.reddiax.loghealer.monitoring.entity.HealthCheck;
 import com.reddiax.loghealer.monitoring.entity.MonitoredService;
 import com.reddiax.loghealer.monitoring.entity.ServiceStatus;
 import com.reddiax.loghealer.monitoring.repository.HealthCheckRepository;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -15,12 +15,17 @@ import java.time.Duration;
 import java.time.Instant;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class HealthCheckService {
 
     private final WebClient webClient;
     private final HealthCheckRepository healthCheckRepository;
+
+    public HealthCheckService(@Qualifier("monitoringWebClient") WebClient webClient,
+                              HealthCheckRepository healthCheckRepository) {
+        this.webClient = webClient;
+        this.healthCheckRepository = healthCheckRepository;
+    }
 
     @Transactional
     public HealthCheck performHealthCheck(MonitoredService service) {
