@@ -155,6 +155,7 @@ public class ServiceGroupService {
                 .orElseGet(() -> {
                     Tenant tenant = Tenant.builder()
                             .name(DEFAULT_TENANT_ID)
+                            .slug(DEFAULT_TENANT_ID)
                             .build();
                     return tenantRepository.save(tenant);
                 });
