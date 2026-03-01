@@ -45,6 +45,7 @@ public class Project {
     @Column(name = "api_key", nullable = false, unique = true)
     private String apiKey;
 
+    @Builder.Default
     @Column(name = "is_active", nullable = false)
     private boolean active = true;
 
