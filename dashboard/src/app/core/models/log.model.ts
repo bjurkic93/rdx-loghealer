@@ -15,6 +15,7 @@ export interface LogEntry {
   spanId: string | null;
   hostName: string | null;
   environment: string | null;
+  serviceName: string | null;
 }
 
 export interface LogSearchResponse {

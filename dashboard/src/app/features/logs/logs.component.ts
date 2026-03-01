@@ -25,11 +25,25 @@ export class LogsComponent implements OnInit {
   searchQuery = '';
   selectedLevels: string[] = [];
   levels = ['ERROR', 'WARN', 'INFO', 'DEBUG', 'TRACE'];
+  selectedProjectId = '';
+  availableProjects: string[] = [];
 
   expandedLogId: string | null = null;
 
   ngOnInit(): void {
+    this.loadProjects();
     this.loadLogs();
+  }
+
+  loadProjects(): void {
+    this.apiService.getProjects().subscribe({
+      next: (projects) => {
+        this.availableProjects = projects.map(p => p.name);
+      },
+      error: () => {
+        // Fallback - extract from logs later
+      }
+    });
   }
 
   loadLogs(): void {
@@ -39,6 +53,7 @@ export class LogsComponent implements OnInit {
     const request: LogSearchRequest = {
       query: this.searchQuery || undefined,
       levels: this.selectedLevels.length > 0 ? this.selectedLevels : undefined,
+      projectId: this.selectedProjectId || undefined,
       page: this.currentPage,
       size: this.pageSize
     };

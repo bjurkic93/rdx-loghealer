@@ -12,6 +12,12 @@
         placeholder="Search logs..." 
         [(ngModel)]="searchQuery"
         (keyup.enter)="onSearch()">
+      <select class="input project-select" [(ngModel)]="selectedProjectId" (change)="onSearch()">
+        <option value="">All Projects</option>
+        @for (project of availableProjects; track project) {
+          <option [value]="project">{{ project }}</option>
+        }
+      </select>
       <button class="btn primary" (click)="onSearch()">Search</button>
     </div>
     
@@ -39,6 +45,9 @@
           <div class="log-header">
             <span class="badge" [ngClass]="getLevelClass(log.level)">{{ log.level }}</span>
             <span class="timestamp">{{ formatTimestamp(log.timestamp) }}</span>
+            @if (log.projectId) {
+              <span class="project-badge">{{ log.projectId }}</span>
+            }
             <span class="logger">{{ log.logger }}</span>
           </div>
           <div class="log-message">{{ log.message }}</div>
@@ -52,6 +61,18 @@
                 </div>
               }
               <div class="metadata">
+                @if (log.projectId) {
+                  <div class="meta-item">
+                    <span class="meta-label">Project:</span>
+                    <span class="meta-value">{{ log.projectId }}</span>
+                  </div>
+                }
+                @if (log.serviceName) {
+                  <div class="meta-item">
+                    <span class="meta-label">Service:</span>
+                    <span class="meta-value">{{ log.serviceName }}</span>
+                  </div>
+                }
                 @if (log.exceptionClass) {
                   <div class="meta-item">
                     <span class="meta-label">Exception:</span>

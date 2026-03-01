@@ -39,6 +39,10 @@
     flex: 1;
     max-width: 400px;
   }
+
+  .project-select {
+    min-width: 180px;
+  }
 }
 
 .level-filters {
@@ -123,6 +127,15 @@
     font-size: 13px;
     color: #8b949e;
     font-family: 'SF Mono', Monaco, monospace;
+  }
+
+  .project-badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 12px;
+    background: rgba(56, 139, 253, 0.15);
+    color: #58a6ff;
+    font-weight: 500;
   }
 
   .logger {
