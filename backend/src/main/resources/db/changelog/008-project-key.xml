@@ -19,6 +19,23 @@
         <sql>UPDATE project SET project_key = name WHERE project_key IS NULL</sql>
     </changeSet>
 
+    <changeSet id="008-2b" author="loghealer">
+        <comment>Fix duplicate project_keys by appending UUID suffix</comment>
+        <sql>
+            WITH duplicates AS (
+                SELECT project_key, array_agg(id ORDER BY created_at DESC) as ids
+                FROM project
+                GROUP BY project_key
+                HAVING COUNT(*) > 1
+            )
+            UPDATE project p
+            SET project_key = p.project_key || '-' || SUBSTRING(p.id::text, 1, 8)
+            FROM duplicates d
+            WHERE p.project_key = d.project_key
+            AND p.id != d.ids[1]
+        </sql>
+    </changeSet>
+
     <changeSet id="008-3" author="loghealer">
         <comment>Make project_key not null and unique</comment>
         <addNotNullConstraint tableName="project" columnName="project_key" columnDataType="VARCHAR(100)"/>
