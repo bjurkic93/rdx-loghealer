@@ -12,5 +12,6 @@
     <include file="db/changelog/005-monitoring-tables.xml"/>
     <include file="db/changelog/006-project-package-prefix.xml"/>
     <include file="db/changelog/007-fix-conversation.xml"/>
+    <include file="db/changelog/008-project-key.xml"/>
 
 </databaseChangeLog>

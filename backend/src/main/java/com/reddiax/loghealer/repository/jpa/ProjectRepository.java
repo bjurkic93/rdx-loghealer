@@ -28,4 +28,7 @@ public interface ProjectRepository extends JpaRepository<Project, UUID> {
 
     @Query("SELECT p FROM Project p WHERE p.name = :name AND p.active = true")
     Optional<Project> findByName(@Param("name") String name);
+
+    @Query("SELECT p FROM Project p WHERE p.projectKey = :projectKey AND p.active = true")
+    Optional<Project> findByProjectKey(@Param("projectKey") String projectKey);
 }

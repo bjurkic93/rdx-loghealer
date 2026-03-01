@@ -55,6 +55,7 @@ export class ServiceGroupsComponent implements OnInit {
 
   newProject: ProjectRequest = {
     name: '',
+    projectKey: '',
     repoUrl: '',
     gitProvider: 'GITHUB',
     defaultBranch: 'main',
@@ -137,7 +138,8 @@ export class ServiceGroupsComponent implements OnInit {
 
   selectRepo(repo: GitHubRepository): void {
     this.selectedRepo = repo;
-    this.newProject.name = repo.name;
+    this.newProject.projectKey = repo.name;
+    this.newProject.name = this.formatRepoNameAsDisplayName(repo.name);
     this.newProject.repoUrl = `https://github.com/${repo.fullName}`;
     this.newProject.defaultBranch = repo.defaultBranch;
     this.repoSearchTerm = repo.fullName;
@@ -264,6 +266,7 @@ export class ServiceGroupsComponent implements OnInit {
   resetNewProject(): void {
     this.newProject = {
       name: '',
+      projectKey: '',
       repoUrl: '',
       gitProvider: 'GITHUB',
       defaultBranch: 'main',
@@ -273,8 +276,15 @@ export class ServiceGroupsComponent implements OnInit {
     this.repoSearchTerm = '';
   }
 
+  formatRepoNameAsDisplayName(repoName: string): string {
+    return repoName
+      .split(/[-_]/)
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  }
+
   createProject(): void {
-    if (!this.newProject.name || !this.newProject.repoUrl) return;
+    if (!this.newProject.name || !this.newProject.projectKey || !this.newProject.repoUrl) return;
 
     this.loading = true;
     this.apiService.createProject(this.newProject).subscribe({

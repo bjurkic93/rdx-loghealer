@@ -26,6 +26,9 @@ public class Project {
     @Column(nullable = false)
     private String name;
 
+    @Column(name = "project_key", nullable = false, unique = true)
+    private String projectKey;
+
     @Column(name = "git_provider")
     @Enumerated(EnumType.STRING)
     private GitProvider gitProvider;

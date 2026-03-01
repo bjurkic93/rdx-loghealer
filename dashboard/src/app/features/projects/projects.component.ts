@@ -27,6 +27,7 @@ export class ProjectsComponent implements OnInit {
   // Form
   formData: ProjectRequest = {
     name: '',
+    projectKey: '',
     repoUrl: '',
     gitProvider: 'GITHUB',
     defaultBranch: 'main',
@@ -85,11 +86,24 @@ export class ProjectsComponent implements OnInit {
   selectRepo(repo: GitHubRepository): void {
     this.formData.repoUrl = repo.htmlUrl;
     this.formData.defaultBranch = repo.defaultBranch;
+    // Auto-fill project key from repo name (this is the identifier used in logs)
+    if (!this.formData.projectKey) {
+      this.formData.projectKey = repo.name;
+    }
+    // Auto-fill display name if empty
     if (!this.formData.name) {
-      this.formData.name = repo.name;
+      this.formData.name = this.formatRepoNameAsDisplayName(repo.name);
     }
     this.showRepoDropdown = false;
     this.repoSearchQuery = repo.fullName;
+  }
+
+  formatRepoNameAsDisplayName(repoName: string): string {
+    // Convert "rdxs-backend" to "Rdxs Backend"
+    return repoName
+      .split(/[-_]/)
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
   }
 
   startCreate(): void {
@@ -103,6 +117,7 @@ export class ProjectsComponent implements OnInit {
     this.editingProject = project;
     this.formData = {
       name: project.name,
+      projectKey: project.projectKey,
       repoUrl: project.repoUrl || '',
       gitProvider: project.gitProvider || 'GITHUB',
       defaultBranch: project.defaultBranch || 'main',
@@ -120,6 +135,7 @@ export class ProjectsComponent implements OnInit {
   resetForm(): void {
     this.formData = {
       name: '',
+      projectKey: '',
       repoUrl: '',
       gitProvider: 'GITHUB',
       defaultBranch: 'main',
@@ -129,7 +145,7 @@ export class ProjectsComponent implements OnInit {
   }
 
   saveProject(): void {
-    if (!this.formData.name) return;
+    if (!this.formData.name || !this.formData.projectKey) return;
 
     this.loading = true;
 

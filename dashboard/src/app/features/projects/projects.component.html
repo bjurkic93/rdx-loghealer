@@ -44,7 +44,10 @@
         @for (project of projects; track project.id) {
           <div class="project-card">
             <div class="card-header">
-              <div class="project-name">{{ project.name }}</div>
+              <div class="project-info">
+                <div class="project-name">{{ project.name }}</div>
+                <code class="project-key">{{ project.projectKey }}</code>
+              </div>
               <div class="card-actions">
                 <button class="btn-icon" (click)="startEdit(project)" title="Edit">
                   <svg viewBox="0 0 24 24" fill="none" width="16" height="16">
@@ -120,15 +123,27 @@
         <h2>Basic Information</h2>
         
         <div class="form-group">
-          <label for="name">Project Name *</label>
+          <label for="name">Display Name *</label>
           <input 
             type="text" 
             id="name" 
             class="input"
             [(ngModel)]="formData.name"
+            placeholder="e.g., School Backend"
+            required>
+          <p class="form-hint">Human-readable name for the project.</p>
+        </div>
+
+        <div class="form-group">
+          <label for="projectKey">Project ID *</label>
+          <input 
+            type="text" 
+            id="projectKey" 
+            class="input mono"
+            [(ngModel)]="formData.projectKey"
             placeholder="e.g., rdxs-backend"
             required>
-          <p class="form-hint">This must match the <code>projectId</code> in your application's logback configuration.</p>
+          <p class="form-hint">This must match the <code>projectId</code> in your application's logback configuration. Auto-filled from repo name.</p>
         </div>
 
         <div class="form-group">
@@ -206,7 +221,7 @@
 
       <div class="form-actions">
         <button class="btn btn-secondary" (click)="backToList()">Cancel</button>
-        <button class="btn btn-primary" (click)="saveProject()" [disabled]="!formData.name || loading">
+        <button class="btn btn-primary" (click)="saveProject()" [disabled]="!formData.name || !formData.projectKey || loading">
           {{ loading ? 'Saving...' : (viewMode === 'edit' ? 'Update Project' : 'Create Project') }}
         </button>
       </div>

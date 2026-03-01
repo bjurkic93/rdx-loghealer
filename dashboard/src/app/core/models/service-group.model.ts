@@ -1,6 +1,7 @@
 export interface Project {
   id: string;
   name: string;
+  projectKey: string;
   repoUrl?: string;
   gitProvider?: 'GITHUB' | 'GITLAB' | 'BITBUCKET';
   defaultBranch?: string;
@@ -13,6 +14,7 @@ export interface Project {
 
 export interface ProjectRequest {
   name: string;
+  projectKey: string;
   repoUrl?: string;
   gitProvider?: string;
   defaultBranch?: string;

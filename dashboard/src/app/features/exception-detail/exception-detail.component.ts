@@ -90,15 +90,15 @@ export class ExceptionDetailComponent implements OnInit {
   discoverProject(exception: ExceptionGroup): void {
     this.discoveringProject = true;
     
-    // First try to find project by exception's projectId (which matches project.name)
+    // First try to find project by exception's projectId (which matches project.projectKey)
     if (exception.projectId) {
-      this.apiService.getProjectByName(exception.projectId).subscribe({
+      this.apiService.getProjectByKey(exception.projectId).subscribe({
         next: (project) => {
           this.discoveredProject = project;
           this.discoveringProject = false;
         },
         error: () => {
-          // Project not found by name, fallback to package discovery
+          // Project not found by key, fallback to package discovery
           this.discoverProjectByPackage(exception);
         }
       });

@@ -61,26 +61,26 @@ public class CodeFixService {
 
         var exception = exceptionOpt.get();
         
-        // Find project - first try by UUID if provided, then by name from exception
+        // Find project - first try by UUID if provided, then by projectKey from exception
         Project project = null;
         if (request.getProjectId() != null && !request.getProjectId().isEmpty()) {
             try {
                 project = projectRepository.findById(UUID.fromString(request.getProjectId())).orElse(null);
             } catch (IllegalArgumentException e) {
-                // Not a UUID, try by name
-                project = projectRepository.findByName(request.getProjectId()).orElse(null);
+                // Not a UUID, try by projectKey
+                project = projectRepository.findByProjectKey(request.getProjectId()).orElse(null);
             }
         }
         
-        // If still not found, try to find by exception's projectId (which is the project name)
+        // If still not found, try to find by exception's projectId (which should match project.projectKey)
         if (project == null && exception.getProjectId() != null) {
-            project = projectRepository.findByName(exception.getProjectId()).orElse(null);
+            project = projectRepository.findByProjectKey(exception.getProjectId()).orElse(null);
         }
         
         if (project == null) {
             return CodeFixResponse.builder()
                     .status("ERROR")
-                    .message("Project not found. Please create a project named '" + exception.getProjectId() + "' with a GitHub repository URL.")
+                    .message("Project not found. Please create a project with Project ID '" + exception.getProjectId() + "' and configure a GitHub repository URL.")
                     .build();
         }
 

@@ -57,14 +57,23 @@ public class ProjectController {
         return ResponseEntity.ok(toResponse(project));
     }
 
+    @GetMapping("/by-key/{projectKey}")
+    public ResponseEntity<ProjectResponse> getProjectByKey(@PathVariable String projectKey) {
+        log.info("Getting project by key: {}", projectKey);
+        Project project = projectRepository.findByProjectKey(projectKey)
+                .orElseThrow(() -> new RuntimeException("Project not found with key: " + projectKey));
+        return ResponseEntity.ok(toResponse(project));
+    }
+
     @PostMapping
     public ResponseEntity<ProjectResponse> createProject(@Valid @RequestBody ProjectRequest request) {
-        log.info("Creating project: {}", request.getName());
+        log.info("Creating project: {} with key: {}", request.getName(), request.getProjectKey());
         Tenant tenant = getOrCreateDefaultTenant();
 
         Project project = Project.builder()
                 .tenant(tenant)
                 .name(request.getName())
+                .projectKey(request.getProjectKey())
                 .repoUrl(request.getRepoUrl())
                 .gitProvider(request.getGitProvider() != null ? 
                         Project.GitProvider.valueOf(request.getGitProvider()) : null)
@@ -74,7 +83,7 @@ public class ProjectController {
                 .build();
 
         project = projectRepository.save(project);
-        log.info("Created project: {} with API key: {}", project.getName(), project.getApiKey());
+        log.info("Created project: {} with key: {} and API key: {}", project.getName(), project.getProjectKey(), project.getApiKey());
 
         return ResponseEntity.status(HttpStatus.CREATED).body(toResponse(project));
     }
@@ -89,6 +98,7 @@ public class ProjectController {
                 .orElseThrow(() -> new RuntimeException("Project not found: " + id));
 
         project.setName(request.getName());
+        project.setProjectKey(request.getProjectKey());
         project.setRepoUrl(request.getRepoUrl());
         project.setGitProvider(request.getGitProvider() != null ? 
                 Project.GitProvider.valueOf(request.getGitProvider()) : null);
@@ -180,6 +190,7 @@ public class ProjectController {
         return ProjectResponse.builder()
                 .id(project.getId())
                 .name(project.getName())
+                .projectKey(project.getProjectKey())
                 .repoUrl(project.getRepoUrl())
                 .gitProvider(project.getGitProvider() != null ? project.getGitProvider().name() : null)
                 .defaultBranch(project.getDefaultBranch())
@@ -195,6 +206,8 @@ public class ProjectController {
     public static class ProjectRequest {
         @NotBlank
         private String name;
+        @NotBlank
+        private String projectKey;
         private String repoUrl;
         private String gitProvider;
         private String defaultBranch;
@@ -206,6 +219,7 @@ public class ProjectController {
     public static class ProjectResponse {
         private UUID id;
         private String name;
+        private String projectKey;
         private String repoUrl;
         private String gitProvider;
         private String defaultBranch;

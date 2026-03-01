@@ -239,18 +239,25 @@
 
               <div class="form-row">
                 <div class="form-group">
-                  <label for="project-name">Project Name *</label>
-                  <input type="text" id="project-name" [(ngModel)]="newProject.name" placeholder="e.g., rdx-backend">
+                  <label for="project-name">Display Name *</label>
+                  <input type="text" id="project-name" [(ngModel)]="newProject.name" placeholder="e.g., School Backend">
+                </div>
+                <div class="form-group">
+                  <label for="project-key">Project ID *</label>
+                  <input type="text" id="project-key" [(ngModel)]="newProject.projectKey" placeholder="e.g., rdxs-backend" class="mono">
+                  <span class="hint">Must match projectId in logback config</span>
+                </div>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="project-repo">Repository URL *</label>
+                  <input type="text" id="project-repo" [(ngModel)]="newProject.repoUrl" placeholder="https://github.com/owner/repo">
                 </div>
                 <div class="form-group">
                   <label for="default-branch">Default Branch</label>
                   <input type="text" id="default-branch" [(ngModel)]="newProject.defaultBranch" placeholder="main">
                 </div>
-              </div>
-
-              <div class="form-group">
-                <label for="project-repo">Repository URL *</label>
-                <input type="text" id="project-repo" [(ngModel)]="newProject.repoUrl" placeholder="https://github.com/owner/repo">
               </div>
 
               <div class="form-group">
@@ -261,7 +268,7 @@
 
               <div class="form-actions">
                 <button class="btn btn-secondary" (click)="toggleAddProject()">Cancel</button>
-                <button class="btn btn-primary" (click)="createProject()" [disabled]="!newProject.name || !newProject.repoUrl || loading">
+                <button class="btn btn-primary" (click)="createProject()" [disabled]="!newProject.name || !newProject.projectKey || !newProject.repoUrl || loading">
                   <span class="spinner" *ngIf="loading"></span>
                   {{ loading ? 'Creating...' : 'Create Project' }}
                 </button>

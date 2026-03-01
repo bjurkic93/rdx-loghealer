@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+
+    <changeSet id="008-1" author="loghealer">
+        <comment>Add project_key column to project table</comment>
+        <addColumn tableName="project">
+            <column name="project_key" type="VARCHAR(100)">
+                <constraints nullable="true"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="008-2" author="loghealer">
+        <comment>Populate project_key from name for existing projects</comment>
+        <sql>UPDATE project SET project_key = name WHERE project_key IS NULL</sql>
+    </changeSet>
+
+    <changeSet id="008-3" author="loghealer">
+        <comment>Make project_key not null and unique</comment>
+        <addNotNullConstraint tableName="project" columnName="project_key" columnDataType="VARCHAR(100)"/>
+        <addUniqueConstraint tableName="project" columnNames="project_key" constraintName="uk_project_key"/>
+    </changeSet>
+
+</databaseChangeLog>
