@@ -1,0 +1,215 @@
+<div class="projects-page">
+  <!-- Toast Messages -->
+  @if (successMessage) {
+    <div class="toast success">{{ successMessage }}</div>
+  }
+  @if (error) {
+    <div class="toast error">{{ error }}</div>
+  }
+
+  <!-- List View -->
+  @if (viewMode === 'list') {
+    <header class="page-header">
+      <div class="header-left">
+        <h1>Projects</h1>
+        <span class="count-badge">{{ projects.length }}</span>
+      </div>
+      <button class="btn btn-primary" (click)="startCreate()">
+        <svg viewBox="0 0 24 24" fill="none" width="16" height="16">
+          <path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        New Project
+      </button>
+    </header>
+
+    <p class="page-description">
+      Projects represent your applications that send logs to LogHealer. 
+      The project <strong>name must match</strong> the <code>projectId</code> configured in your application's logging setup.
+    </p>
+
+    @if (loading) {
+      <div class="loading-state">Loading projects...</div>
+    } @else if (projects.length === 0) {
+      <div class="empty-state">
+        <svg viewBox="0 0 24 24" fill="none" width="48" height="48">
+          <path d="M3 7V17C3 18.1046 3.89543 19 5 19H19C20.1046 19 21 18.1046 21 17V9C21 7.89543 20.1046 7 19 7H13L11 5H5C3.89543 5 3 5.89543 3 7Z" stroke="currentColor" stroke-width="2"/>
+          <path d="M12 11V15M10 13H14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+        <h3>No projects yet</h3>
+        <p>Create your first project to start collecting logs</p>
+        <button class="btn btn-primary" (click)="startCreate()">Create Project</button>
+      </div>
+    } @else {
+      <div class="projects-grid">
+        @for (project of projects; track project.id) {
+          <div class="project-card">
+            <div class="card-header">
+              <div class="project-name">{{ project.name }}</div>
+              <div class="card-actions">
+                <button class="btn-icon" (click)="startEdit(project)" title="Edit">
+                  <svg viewBox="0 0 24 24" fill="none" width="16" height="16">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+                <button class="btn-icon danger" (click)="deleteProject(project)" title="Delete">
+                  <svg viewBox="0 0 24 24" fill="none" width="16" height="16">
+                    <path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+            
+            <div class="card-body">
+              @if (project.repoUrl) {
+                <div class="info-row">
+                  <span class="info-label">Repository</span>
+                  <a [href]="project.repoUrl" target="_blank" class="repo-link">
+                    {{ project.repoUrl.replace('https://github.com/', '') }}
+                    <svg viewBox="0 0 24 24" fill="none" width="12" height="12">
+                      <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6M15 3h6v6M10 14L21 3" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                  </a>
+                </div>
+              } @else {
+                <div class="info-row warning">
+                  <span class="info-label">Repository</span>
+                  <span class="info-value">Not configured</span>
+                </div>
+              }
+
+              @if (project.packagePrefix) {
+                <div class="info-row">
+                  <span class="info-label">Package Prefix</span>
+                  <code class="info-value">{{ project.packagePrefix }}</code>
+                </div>
+              }
+
+              <div class="info-row">
+                <span class="info-label">API Key</span>
+                <div class="api-key-row">
+                  <code class="api-key">{{ project.apiKey.substring(0, 12) }}...</code>
+                  <button class="btn-icon small" (click)="copyApiKey(project.apiKey)" title="Copy API Key">
+                    <svg viewBox="0 0 24 24" fill="none" width="14" height="14">
+                      <rect x="9" y="9" width="13" height="13" rx="2" stroke="currentColor" stroke-width="2"/>
+                      <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  }
+
+  <!-- Create/Edit View -->
+  @if (viewMode === 'create' || viewMode === 'edit') {
+    <header class="page-header">
+      <button class="btn-back" (click)="backToList()">
+        <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
+          <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+      <h1>{{ viewMode === 'edit' ? 'Edit Project' : 'New Project' }}</h1>
+    </header>
+
+    <div class="form-container">
+      <div class="form-section">
+        <h2>Basic Information</h2>
+        
+        <div class="form-group">
+          <label for="name">Project Name *</label>
+          <input 
+            type="text" 
+            id="name" 
+            class="input"
+            [(ngModel)]="formData.name"
+            placeholder="e.g., rdxs-backend"
+            required>
+          <p class="form-hint">This must match the <code>projectId</code> in your application's logback configuration.</p>
+        </div>
+
+        <div class="form-group">
+          <label for="packagePrefix">Package Prefix</label>
+          <input 
+            type="text" 
+            id="packagePrefix" 
+            class="input"
+            [(ngModel)]="formData.packagePrefix"
+            placeholder="e.g., com.reddiax.school">
+          <p class="form-hint">Used for auto-discovery from stack traces.</p>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h2>GitHub Repository</h2>
+        
+        <div class="form-group">
+          <label for="repoSearch">Search Repository</label>
+          <div class="repo-search-container">
+            <input 
+              type="text" 
+              id="repoSearch" 
+              class="input"
+              [(ngModel)]="repoSearchQuery"
+              (focus)="onRepoInputFocus()"
+              (blur)="onRepoInputBlur()"
+              placeholder="Search your GitHub repositories...">
+            
+            @if (showRepoDropdown && filteredRepos.length > 0) {
+              <div class="repo-dropdown">
+                @for (repo of filteredRepos; track repo.id) {
+                  <div class="repo-option" (mousedown)="selectRepo(repo)">
+                    <span class="repo-name">{{ repo.name }}</span>
+                    <span class="repo-fullname">{{ repo.fullName }}</span>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="repoUrl">Repository URL</label>
+          <input 
+            type="text" 
+            id="repoUrl" 
+            class="input"
+            [(ngModel)]="formData.repoUrl"
+            placeholder="https://github.com/username/repo">
+          <p class="form-hint">Required for AI-powered code fixes.</p>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label for="gitProvider">Git Provider</label>
+            <select id="gitProvider" class="input" [(ngModel)]="formData.gitProvider">
+              <option value="GITHUB">GitHub</option>
+              <option value="GITLAB">GitLab</option>
+              <option value="BITBUCKET">Bitbucket</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="defaultBranch">Default Branch</label>
+            <input 
+              type="text" 
+              id="defaultBranch" 
+              class="input"
+              [(ngModel)]="formData.defaultBranch"
+              placeholder="main">
+          </div>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-secondary" (click)="backToList()">Cancel</button>
+        <button class="btn btn-primary" (click)="saveProject()" [disabled]="!formData.name || loading">
+          {{ loading ? 'Saving...' : (viewMode === 'edit' ? 'Update Project' : 'Create Project') }}
+        </button>
+      </div>
+    </div>
+  }
+</div>

@@ -19,8 +19,10 @@ export interface PullRequestResponse {
 }
 
 export interface GitHubRepository {
+  id: number;
   fullName: string;
   name: string;
-  private: string;
+  private: boolean;
   defaultBranch: string;
+  htmlUrl: string;
 }

@@ -223,7 +223,7 @@
                     <div class="repo-item" *ngFor="let repo of filteredRepos" (click)="selectRepo(repo)">
                       <span class="repo-name">{{ repo.name }}</span>
                       <span class="repo-fullname">{{ repo.fullName }}</span>
-                      <span class="repo-private" *ngIf="repo.private === 'true'">Private</span>
+                      <span class="repo-private" *ngIf="repo.private">Private</span>
                     </div>
                   </div>
                   <div class="selected-repo" *ngIf="selectedRepo">
