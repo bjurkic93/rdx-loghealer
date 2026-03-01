@@ -80,7 +80,7 @@ public class LogHealerAppender extends AppenderBase<ILoggingEvent> {
 
         try {
             Map<String, Object> logEntry = new HashMap<>();
-            logEntry.put("timestamp", Instant.ofEpochMilli(event.getTimeStamp()).toString());
+            logEntry.put("timestamp", event.getTimeStamp());
             logEntry.put("level", event.getLevel().toString());
             logEntry.put("logger", event.getLoggerName());
             logEntry.put("message", event.getFormattedMessage());
