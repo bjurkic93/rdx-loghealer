@@ -6,7 +6,7 @@ import { DashboardStats } from '../models/dashboard.model';
 import { LogSearchRequest, LogSearchResponse } from '../models/log.model';
 import { ExceptionGroup } from '../models/exception.model';
 import { AiAnalysisResponse, AiProviders } from '../models/ai.model';
-import { GitHubConnection, PullRequestResponse, GitHubRepository } from '../models/github.model';
+import { GitHubConnection, PullRequestResponse, GitHubRepository, RepoProjectInfo } from '../models/github.model';
 import { ServiceGroup, ServiceGroupRequest, TraceTimeline, Project, ProjectRequest, DiscoveryRequest, DiscoveryResponse } from '../models/service-group.model';
 import { CodeFixRequest, CodeFixResponse, FileChange } from '../models/codefix.model';
 import {
@@ -113,6 +113,10 @@ export class ApiService {
 
   getGitHubRepositories(): Observable<GitHubRepository[]> {
     return this.http.get<GitHubRepository[]>(`${this.baseUrl}/github/repositories`);
+  }
+
+  getRepoProjectInfo(owner: string, repo: string, branch = 'main'): Observable<RepoProjectInfo> {
+    return this.http.get<RepoProjectInfo>(`${this.baseUrl}/github/repo-info/${owner}/${repo}?branch=${branch}`);
   }
 
   connectRepository(connectionId: string, repositoryFullName: string): Observable<any> {

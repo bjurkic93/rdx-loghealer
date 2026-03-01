@@ -26,3 +26,12 @@ export interface GitHubRepository {
   defaultBranch: string;
   htmlUrl: string;
 }
+
+export interface RepoProjectInfo {
+  found: boolean;
+  artifactId?: string;
+  groupId?: string;
+  name?: string;
+  description?: string;
+  error?: string;
+}

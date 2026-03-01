@@ -86,21 +86,39 @@ export class ProjectsComponent implements OnInit {
   selectRepo(repo: GitHubRepository): void {
     this.formData.repoUrl = repo.htmlUrl;
     this.formData.defaultBranch = repo.defaultBranch;
-    // Auto-fill project key from repo name (this is the identifier used in logs)
-    if (!this.formData.projectKey) {
-      this.formData.projectKey = repo.name;
-    }
-    // Auto-fill display name if empty
-    if (!this.formData.name) {
-      this.formData.name = this.formatRepoNameAsDisplayName(repo.name);
-    }
     this.showRepoDropdown = false;
     this.repoSearchQuery = repo.fullName;
+
+    // Fetch pom.xml to get artifactId as projectKey
+    const [owner, repoName] = repo.fullName.split('/');
+    this.loadingRepos = true;
+    
+    this.apiService.getRepoProjectInfo(owner, repoName, repo.defaultBranch).subscribe({
+      next: (info) => {
+        this.loadingRepos = false;
+        if (info.found && info.artifactId) {
+          this.formData.projectKey = info.artifactId;
+          this.formData.name = info.name || this.formatRepoNameAsDisplayName(info.artifactId);
+          if (info.groupId) {
+            this.formData.packagePrefix = info.groupId;
+          }
+        } else {
+          // Fallback to repo name if pom.xml not found
+          this.formData.projectKey = repo.name;
+          this.formData.name = this.formatRepoNameAsDisplayName(repo.name);
+        }
+      },
+      error: () => {
+        this.loadingRepos = false;
+        // Fallback to repo name
+        this.formData.projectKey = repo.name;
+        this.formData.name = this.formatRepoNameAsDisplayName(repo.name);
+      }
+    });
   }
 
-  formatRepoNameAsDisplayName(repoName: string): string {
-    // Convert "rdxs-backend" to "Rdxs Backend"
-    return repoName
+  formatRepoNameAsDisplayName(name: string): string {
+    return name
       .split(/[-_]/)
       .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
       .join(' ');

@@ -102,6 +102,73 @@ public class GitHubController {
                 .orElse(ResponseEntity.ok(Map.of("connected", false)));
     }
 
+    @GetMapping("/repo-info/{owner}/{repo}")
+    public ResponseEntity<Map<String, Object>> getRepositoryProjectInfo(
+            @PathVariable String owner,
+            @PathVariable String repo,
+            @RequestParam(defaultValue = "main") String branch
+    ) {
+        String repoFullName = owner + "/" + repo;
+        log.info("Fetching project info from pom.xml for {}", repoFullName);
+        
+        return gitHubService.getAnyActiveConnection()
+                .map(connection -> {
+                    try {
+                        String pomContent = gitHubService.getFileContent(repoFullName, "pom.xml", branch);
+                        if (pomContent == null || pomContent.isEmpty()) {
+                            return ResponseEntity.ok(Map.<String, Object>of(
+                                    "found", false,
+                                    "error", "pom.xml not found"
+                            ));
+                        }
+                        
+                        Map<String, String> projectInfo = parsePomXml(pomContent);
+                        return ResponseEntity.ok(Map.<String, Object>of(
+                                "found", true,
+                                "artifactId", projectInfo.getOrDefault("artifactId", ""),
+                                "groupId", projectInfo.getOrDefault("groupId", ""),
+                                "name", projectInfo.getOrDefault("name", ""),
+                                "description", projectInfo.getOrDefault("description", "")
+                        ));
+                    } catch (Exception e) {
+                        log.error("Failed to fetch pom.xml from {}: {}", repoFullName, e.getMessage());
+                        return ResponseEntity.ok(Map.<String, Object>of(
+                                "found", false,
+                                "error", e.getMessage()
+                        ));
+                    }
+                })
+                .orElse(ResponseEntity.ok(Map.of("found", false, "error", "GitHub not connected")));
+    }
+
+    private Map<String, String> parsePomXml(String pomContent) {
+        Map<String, String> result = new java.util.HashMap<>();
+        
+        // Simple XML parsing - extract top-level elements only (not from parent)
+        result.put("artifactId", extractXmlElement(pomContent, "artifactId"));
+        result.put("groupId", extractXmlElement(pomContent, "groupId"));
+        result.put("name", extractXmlElement(pomContent, "name"));
+        result.put("description", extractXmlElement(pomContent, "description"));
+        
+        return result;
+    }
+
+    private String extractXmlElement(String xml, String element) {
+        // Find the element that's NOT inside <parent> block
+        // First, remove the parent block
+        String withoutParent = xml.replaceAll("(?s)<parent>.*?</parent>", "");
+        
+        // Now extract the element
+        java.util.regex.Pattern pattern = java.util.regex.Pattern.compile(
+                "<" + element + ">([^<]*)</" + element + ">"
+        );
+        java.util.regex.Matcher matcher = pattern.matcher(withoutParent);
+        if (matcher.find()) {
+            return matcher.group(1).trim();
+        }
+        return "";
+    }
+
     @GetMapping("/connection/{projectId}")
     public ResponseEntity<Map<String, Object>> getConnection(@PathVariable String projectId) {
         return gitHubService.getConnectionForProject(projectId)

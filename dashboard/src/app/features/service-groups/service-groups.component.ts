@@ -138,11 +138,34 @@ export class ServiceGroupsComponent implements OnInit {
 
   selectRepo(repo: GitHubRepository): void {
     this.selectedRepo = repo;
-    this.newProject.projectKey = repo.name;
-    this.newProject.name = this.formatRepoNameAsDisplayName(repo.name);
     this.newProject.repoUrl = `https://github.com/${repo.fullName}`;
     this.newProject.defaultBranch = repo.defaultBranch;
     this.repoSearchTerm = repo.fullName;
+
+    // Fetch pom.xml to get artifactId as projectKey
+    const [owner, repoName] = repo.fullName.split('/');
+    this.loading = true;
+    
+    this.apiService.getRepoProjectInfo(owner, repoName, repo.defaultBranch).subscribe({
+      next: (info) => {
+        this.loading = false;
+        if (info.found && info.artifactId) {
+          this.newProject.projectKey = info.artifactId;
+          this.newProject.name = info.name || this.formatRepoNameAsDisplayName(info.artifactId);
+          if (info.groupId) {
+            this.newProject.packagePrefix = info.groupId;
+          }
+        } else {
+          this.newProject.projectKey = repo.name;
+          this.newProject.name = this.formatRepoNameAsDisplayName(repo.name);
+        }
+      },
+      error: () => {
+        this.loading = false;
+        this.newProject.projectKey = repo.name;
+        this.newProject.name = this.formatRepoNameAsDisplayName(repo.name);
+      }
+    });
   }
 
   // Navigation
