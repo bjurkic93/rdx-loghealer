@@ -19,4 +19,10 @@ public interface ProjectRepository extends JpaRepository<Project, UUID> {
     List<Project> findByTenantId(@Param("tenantId") UUID tenantId);
 
     boolean existsByApiKey(String apiKey);
+
+    @Query("SELECT p FROM Project p WHERE p.packagePrefix IS NOT NULL AND p.active = true")
+    List<Project> findAllWithPackagePrefix();
+
+    @Query("SELECT p FROM Project p WHERE p.packagePrefix = :packagePrefix AND p.active = true")
+    Optional<Project> findByPackagePrefix(@Param("packagePrefix") String packagePrefix);
 }

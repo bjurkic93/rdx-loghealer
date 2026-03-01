@@ -16,3 +16,5 @@ export interface TokenResponse {
 export function isSuperAdmin(user: User): boolean {
   return user.roles.includes('SUPER_ADMIN');
 }
+
+export * from './codefix.model';

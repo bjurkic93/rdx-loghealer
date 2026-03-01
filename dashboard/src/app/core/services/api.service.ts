@@ -8,6 +8,7 @@ import { ExceptionGroup } from '../models/exception.model';
 import { AiAnalysisResponse, AiProviders } from '../models/ai.model';
 import { GitHubConnection, PullRequestResponse, GitHubRepository } from '../models/github.model';
 import { ServiceGroup, ServiceGroupRequest, TraceTimeline, Project, ProjectRequest, DiscoveryRequest, DiscoveryResponse } from '../models/service-group.model';
+import { CodeFixRequest, CodeFixResponse, FileChange } from '../models/codefix.model';
 import {
   MonitoredService,
   ServiceCreateDto,
@@ -270,5 +271,18 @@ export class ApiService {
 
   getActiveAlerts(): Observable<AlertHistory[]> {
     return this.http.get<AlertHistory[]>(`${this.baseUrl}/monitoring/alerts/active`);
+  }
+
+  // Codex-style Code Fix
+  analyzeAndFixCode(request: CodeFixRequest): Observable<CodeFixResponse> {
+    return this.http.post<CodeFixResponse>(`${this.baseUrl}/codefix/analyze`, request);
+  }
+
+  continueFixConversation(conversationId: string, message: string): Observable<CodeFixResponse> {
+    return this.http.post<CodeFixResponse>(`${this.baseUrl}/codefix/conversation/${conversationId}/message`, { message });
+  }
+
+  createCodeFixPullRequest(conversationId: string, changes: FileChange[]): Observable<CodeFixResponse> {
+    return this.http.post<CodeFixResponse>(`${this.baseUrl}/codefix/conversation/${conversationId}/create-pr`, { changes });
   }
 }

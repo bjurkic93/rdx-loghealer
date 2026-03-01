@@ -379,4 +379,67 @@ public class GitHubService {
     public Optional<GitHubConnection> getAnyActiveConnection() {
         return connectionRepository.findFirstByIsActiveTrueOrderByCreatedAtDesc();
     }
+
+    public String getFileContent(String repoFullName, String filePath, String branch) {
+        GitHubConnection connection = getAnyActiveConnection()
+                .orElseThrow(() -> new RuntimeException("No active GitHub connection found"));
+
+        try {
+            String response = githubWebClient.get()
+                    .uri("/repos/" + repoFullName + "/contents/" + filePath + "?ref=" + branch)
+                    .header("Authorization", "Bearer " + connection.getAccessToken())
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .timeout(Duration.ofSeconds(30))
+                    .block();
+
+            JsonNode fileNode = objectMapper.readTree(response);
+            String content = fileNode.path("content").asText();
+            String encoding = fileNode.path("encoding").asText();
+
+            if ("base64".equals(encoding)) {
+                byte[] decoded = Base64.getMimeDecoder().decode(content);
+                return new String(decoded);
+            }
+            return content;
+        } catch (Exception e) {
+            log.warn("Failed to fetch file {} from {}/{}: {}", filePath, repoFullName, branch, e.getMessage());
+            return null;
+        }
+    }
+
+    public String getLatestCommitShaPublic(String repoFullName, String branch) {
+        GitHubConnection connection = getAnyActiveConnection()
+                .orElseThrow(() -> new RuntimeException("No active GitHub connection found"));
+        return getLatestCommitSha(connection.getAccessToken(), repoFullName, branch);
+    }
+
+    public void createBranchPublic(String repoFullName, String branchName, String baseSha) {
+        GitHubConnection connection = getAnyActiveConnection()
+                .orElseThrow(() -> new RuntimeException("No active GitHub connection found"));
+
+        try {
+            createBranch(connection.getAccessToken(), repoFullName, branchName, baseSha);
+        } catch (Exception e) {
+            if (e.getMessage() != null && e.getMessage().contains("Reference already exists")) {
+                log.info("Branch {} already exists in {}", branchName, repoFullName);
+            } else {
+                throw e;
+            }
+        }
+    }
+
+    public void updateFileContent(String repoFullName, String branchName, String filePath, 
+                                   String newContent, String commitMessage) {
+        GitHubConnection connection = getAnyActiveConnection()
+                .orElseThrow(() -> new RuntimeException("No active GitHub connection found"));
+        createOrUpdateFile(connection.getAccessToken(), repoFullName, branchName, filePath, newContent, commitMessage);
+    }
+
+    public JsonNode createPullRequestPublic(String repoFullName, String headBranch, 
+                                            String baseBranch, String title, String body) {
+        GitHubConnection connection = getAnyActiveConnection()
+                .orElseThrow(() -> new RuntimeException("No active GitHub connection found"));
+        return createPullRequest(connection.getAccessToken(), repoFullName, headBranch, baseBranch, title, body);
+    }
 }

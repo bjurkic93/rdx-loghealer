@@ -67,27 +67,66 @@
               Analyze with GPT-4o
             }
           </button>
-          @if (githubConnection?.connected) {
-            <button class="btn btn-github" (click)="createPullRequest()" [disabled]="aiLoading || prLoading">
-              @if (prLoading) {
-                <span class="spinner"></span> Creating PR...
-              } @else {
-                <svg viewBox="0 0 24 24" fill="currentColor" class="github-icon">
-                  <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-                </svg>
-                Create Fix PR
-              }
-            </button>
-          } @else {
-            <button class="btn btn-github-connect" (click)="connectGitHub()">
-              <svg viewBox="0 0 24 24" fill="currentColor" class="github-icon">
-                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-              </svg>
-              Connect GitHub
-            </button>
-          }
         </div>
       </div>
+
+      <!-- Auto-discovered Project -->
+      @if (discoveringProject) {
+        <div class="discovered-project-banner loading">
+          <span class="spinner"></span> Detecting source repository...
+        </div>
+      } @else if (discoveredProject) {
+        <div class="discovered-project-banner">
+          <div class="project-info">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+            <div>
+              <span class="label">Detected Project</span>
+              <span class="project-name">{{ discoveredProject.name }}</span>
+              @if (discoveredProject.repoUrl) {
+                <a [href]="discoveredProject.repoUrl" target="_blank" class="repo-link">{{ discoveredProject.repoUrl }}</a>
+              }
+            </div>
+          </div>
+          @if (discoveredProject.repoUrl) {
+            <div class="project-actions">
+              <button class="btn btn-codex" (click)="startCodexFix()" [disabled]="aiLoading || prLoading || chatLoading">
+                @if (chatLoading && !showCodeFixPanel) {
+                  <span class="spinner"></span> Starting...
+                } @else {
+                  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="codex-icon">
+                    <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="currentColor"/>
+                  </svg>
+                  AI Auto-Fix (Codex-style)
+                }
+              </button>
+              <button class="btn btn-github" (click)="createPullRequest()" [disabled]="aiLoading || prLoading">
+                @if (prLoading && !showCodeFixPanel) {
+                  <span class="spinner"></span> Creating PR...
+                } @else {
+                  <svg viewBox="0 0 24 24" fill="currentColor" class="github-icon">
+                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                  </svg>
+                  Quick PR
+                }
+              </button>
+            </div>
+          } @else {
+            <span class="no-repo-warning">No GitHub repo configured for this project</span>
+          }
+        </div>
+      } @else if (!discoveringProject && !discoveredProject) {
+        <div class="discovered-project-banner not-found">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+            <line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+          <span>Could not auto-detect project. Configure package prefix in Service Groups to enable auto-detection.</span>
+        </div>
+      }
 
       @if (aiError) {
         <div class="ai-error">{{ aiError }}</div>
@@ -196,6 +235,138 @@
           <span class="info-label">Tenant ID</span>
           <code class="info-value">{{ exception.tenantId }}</code>
         </div>
+      </div>
+    </div>
+  }
+
+  <!-- Codex-style AI Fix Panel -->
+  @if (showCodeFixPanel) {
+    <div class="codefix-overlay" (click)="closeCodeFixPanel()"></div>
+    <div class="codefix-panel">
+      <div class="codefix-header">
+        <h2>
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="ai-icon">
+            <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="currentColor"/>
+          </svg>
+          AI Code Fix Assistant
+        </h2>
+        <button class="btn-close" (click)="closeCodeFixPanel()">
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="codefix-body">
+        <!-- Chat Messages -->
+        <div class="chat-container" #chatContainer>
+          @for (msg of conversationMessages; track msg) {
+            <div class="chat-message" [ngClass]="msg.role.toLowerCase()">
+              <div class="message-header">
+                @if (msg.role === 'USER') {
+                  <span class="role-badge user">You</span>
+                } @else if (msg.role === 'ASSISTANT') {
+                  <span class="role-badge assistant">AI</span>
+                } @else {
+                  <span class="role-badge system">System</span>
+                }
+                @if (msg.timestamp) {
+                  <span class="timestamp">{{ msg.timestamp | date:'HH:mm:ss' }}</span>
+                }
+              </div>
+              <div class="message-content" [innerHTML]="msg.content | slice:0:5000"></div>
+            </div>
+          }
+
+          @if (chatLoading) {
+            <div class="chat-message assistant loading">
+              <div class="message-header">
+                <span class="role-badge assistant">AI</span>
+              </div>
+              <div class="message-content">
+                <span class="spinner"></span> Thinking...
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- Proposed Changes Preview -->
+        @if (codeFixResponse?.changes?.length) {
+          <div class="changes-preview">
+            <h3>Proposed Changes</h3>
+            @for (change of codeFixResponse!.changes; track change.filePath) {
+              <div class="change-item">
+                <div class="change-header">
+                  <code>{{ change.filePath }}</code>
+                  <span class="change-lines">Lines {{ change.startLine }}-{{ change.endLine }}</span>
+                </div>
+                <p class="change-desc">{{ change.changeDescription }}</p>
+                <div class="code-diff">
+                  <div class="diff-old">
+                    <span class="diff-label">- Old</span>
+                    <pre>{{ change.oldCode }}</pre>
+                  </div>
+                  <div class="diff-new">
+                    <span class="diff-label">+ New</span>
+                    <pre>{{ change.newCode }}</pre>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+
+        <!-- PR Success -->
+        @if (codeFixResponse?.pullRequest; as pr) {
+          <div class="pr-created-banner">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <polyline points="22 4 12 14.01 9 11.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <div>
+              <strong>PR #{{ pr.prNumber }}</strong> created!
+              <a [href]="pr.htmlUrl" target="_blank">View on GitHub</a>
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="codefix-footer">
+        <!-- Chat Input -->
+        <div class="chat-input-container">
+          <textarea 
+            [(ngModel)]="chatInput" 
+            placeholder="Ask follow-up questions or request changes..."
+            (keydown)="handleChatKeydown($event)"
+            [disabled]="chatLoading || prLoading"
+            rows="2"
+          ></textarea>
+          <button class="btn btn-primary btn-send" (click)="sendMessage()" [disabled]="!chatInput.trim() || chatLoading || !conversationId">
+            @if (chatLoading) {
+              <span class="spinner"></span>
+            } @else {
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            }
+          </button>
+        </div>
+
+        <!-- Action Buttons -->
+        @if (codeFixResponse?.changes?.length && !codeFixResponse?.pullRequest) {
+          <div class="action-buttons">
+            <button class="btn btn-success" (click)="applyChangesAndCreatePr()" [disabled]="prLoading">
+              @if (prLoading) {
+                <span class="spinner"></span> Creating PR...
+              } @else {
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+                Apply Changes & Create PR
+              }
+            </button>
+          </div>
+        }
       </div>
     </div>
   }
