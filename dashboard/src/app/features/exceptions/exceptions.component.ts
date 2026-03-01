@@ -68,11 +68,28 @@ export class ExceptionsComponent implements OnInit {
     }
   }
 
-  getTimeAgo(ts: string | number): string {
+  getTimeAgo(ts: string | number | null | undefined): string {
     if (!ts) return '-';
     try {
-      const date = typeof ts === 'number' ? new Date(ts) : new Date(ts);
+      let date: Date;
+      
+      if (typeof ts === 'number') {
+        date = new Date(ts);
+      } else if (typeof ts === 'string') {
+        // Try parsing as number first (epoch millis as string)
+        const numValue = Number(ts);
+        if (!isNaN(numValue) && numValue > 1000000000000) {
+          date = new Date(numValue);
+        } else {
+          // Parse as ISO string
+          date = new Date(ts);
+        }
+      } else {
+        return '-';
+      }
+      
       if (isNaN(date.getTime())) return '-';
+      
       const now = new Date();
       const diffMs = now.getTime() - date.getTime();
       const diffMins = Math.floor(diffMs / 60000);
@@ -82,7 +99,8 @@ export class ExceptionsComponent implements OnInit {
       if (diffMins < 1) return 'just now';
       if (diffMins < 60) return `${diffMins}m ago`;
       if (diffHours < 24) return `${diffHours}h ago`;
-      return `${diffDays}d ago`;
+      if (diffDays < 30) return `${diffDays}d ago`;
+      return date.toLocaleDateString();
     } catch {
       return '-';
     }

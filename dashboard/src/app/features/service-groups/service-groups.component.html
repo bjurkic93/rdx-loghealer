@@ -1,323 +1,392 @@
 <div class="service-groups-container">
-  <div class="page-header">
-    <h1>Service Groups</h1>
-    <p class="subtitle">Group related services for end-to-end tracing</p>
-    <button class="btn btn-primary" (click)="openCreateModal()">
-      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <line x1="12" y1="5" x2="12" y2="19"></line>
-        <line x1="5" y1="12" x2="19" y2="12"></line>
-      </svg>
-      New Service Group
-    </button>
-  </div>
-
-  <div class="error-message" *ngIf="error">
-    {{ error }}
-    <button class="close-btn" (click)="error = null">&times;</button>
-  </div>
-
-  <div class="loading" *ngIf="loading && serviceGroups.length === 0">
-    Loading service groups...
-  </div>
-
-  <div class="empty-state" *ngIf="!loading && serviceGroups.length === 0">
-    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-      <rect x="3" y="3" width="7" height="7"></rect>
-      <rect x="14" y="3" width="7" height="7"></rect>
-      <rect x="14" y="14" width="7" height="7"></rect>
-      <rect x="3" y="14" width="7" height="7"></rect>
+  <!-- Success/Error Messages -->
+  <div class="toast success" *ngIf="successMessage">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+      <polyline points="22 4 12 14.01 9 11.01"/>
     </svg>
-    <h3>No Service Groups</h3>
-    <p>Create a service group to start tracking requests across multiple services.</p>
-    <button class="btn btn-primary" (click)="openCreateModal()">Create First Group</button>
+    {{ successMessage }}
+  </div>
+  
+  <div class="toast error" *ngIf="error">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="15" y1="9" x2="9" y2="15"/>
+      <line x1="9" y1="9" x2="15" y2="15"/>
+    </svg>
+    {{ error }}
+    <button class="toast-close" (click)="error = null">&times;</button>
   </div>
 
-  <div class="groups-grid" *ngIf="serviceGroups.length > 0">
-    <div class="group-card" *ngFor="let group of serviceGroups">
-      <div class="card-header">
-        <h3>{{ group.name }}</h3>
-        <div class="card-actions">
-          <button class="btn-icon" title="Edit" (click)="openEditModal(group)">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-            </svg>
-          </button>
-          <button class="btn-icon danger" title="Delete" (click)="deleteServiceGroup(group)">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="3 6 5 6 21 6"></polyline>
-              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-            </svg>
-          </button>
-        </div>
+  <!-- LIST VIEW -->
+  <ng-container *ngIf="viewMode === 'list'">
+    <div class="page-header">
+      <div>
+        <h1>Service Groups</h1>
+        <p class="subtitle">Group related services for end-to-end tracing</p>
       </div>
-      
-      <p class="description" *ngIf="group.description">{{ group.description }}</p>
-
-      <div class="section">
-        <h4>Projects ({{ group.projects.length }})</h4>
-        <div class="tags">
-          <span class="tag project" *ngFor="let project of group.projects">
-            {{ project.name }}
-          </span>
-          <span class="tag empty" *ngIf="group.projects.length === 0">No projects</span>
-        </div>
-      </div>
-
-      <div class="section">
-        <h4>Databases ({{ group.databases.length }})</h4>
-        <div class="tags">
-          <span class="tag database" *ngFor="let db of group.databases">
-            <span class="db-type">{{ db.dbType }}</span>
-            {{ db.name }}
-          </span>
-          <span class="tag empty" *ngIf="group.databases.length === 0">No databases</span>
-        </div>
-      </div>
-
-      <div class="card-footer">
-        <span class="created">Created {{ group.createdAt | date:'mediumDate' }}</span>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- Create Modal -->
-<div class="modal-overlay" *ngIf="showCreateModal" (click)="closeModals()">
-  <div class="modal" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h2>Create Service Group</h2>
-      <button class="close-btn" (click)="closeModals()">&times;</button>
-    </div>
-    
-    <div class="modal-body">
-      <div class="form-group">
-        <label for="name">Name *</label>
-        <input type="text" id="name" [(ngModel)]="formData.name" placeholder="e.g., RdX School Platform">
-      </div>
-
-      <div class="form-group">
-        <label for="description">Description</label>
-        <textarea id="description" [(ngModel)]="formData.description" placeholder="Optional description..."></textarea>
-      </div>
-
-      <div class="form-group">
-        <label>GitHub Repositories / Projects</label>
-        <div class="project-list">
-          <div class="project-item selectable" 
-               *ngFor="let project of projects" 
-               [class.selected]="isProjectSelected(project.id)"
-               (click)="toggleProjectSelection(project.id)">
-            <div class="project-info">
-              <span class="project-name">{{ project.name }}</span>
-              <span class="project-repo" *ngIf="project.repoUrl">{{ project.repoUrl }}</span>
-              <span class="project-package" *ngIf="project.packagePrefix">📦 {{ project.packagePrefix }}</span>
-            </div>
-            <span class="project-provider" *ngIf="project.gitProvider">{{ project.gitProvider }}</span>
-            <span class="checkmark" *ngIf="isProjectSelected(project.id)">✓</span>
-          </div>
-          <div class="empty-projects" *ngIf="projects.length === 0">
-            No projects yet. Create one below.
-          </div>
-        </div>
-        <button class="btn btn-secondary btn-add-new" (click)="openProjectModal()">
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
-          Add New Project
-        </button>
-      </div>
-
-      <div class="form-group">
-        <label>Databases</label>
-        <div class="database-list">
-          <div class="database-item" *ngFor="let db of formData.databases; let i = index">
-            <span class="db-type">{{ db.dbType }}</span>
-            <span class="db-name">{{ db.name }}</span>
-            <button class="btn-remove" (click)="removeDatabase(i)">&times;</button>
-          </div>
-        </div>
-        
-        <div class="add-database">
-          <select [(ngModel)]="newDatabase.dbType">
-            <option *ngFor="let type of dbTypes" [value]="type">{{ type }}</option>
-          </select>
-          <input type="text" [(ngModel)]="newDatabase.name" placeholder="Database name">
-          <input type="text" [(ngModel)]="newDatabase.host" placeholder="Host (optional)">
-          <input type="number" [(ngModel)]="newDatabase.port" placeholder="Port">
-          <button class="btn btn-secondary" (click)="addDatabase()">Add</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="modal-footer">
-      <button class="btn btn-secondary" (click)="closeModals()">Cancel</button>
-      <button class="btn btn-primary" (click)="createServiceGroup()" [disabled]="!formData.name">Create</button>
-    </div>
-  </div>
-</div>
-
-<!-- Edit Modal -->
-<div class="modal-overlay" *ngIf="showEditModal" (click)="closeModals()">
-  <div class="modal" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h2>Edit Service Group</h2>
-      <button class="close-btn" (click)="closeModals()">&times;</button>
-    </div>
-    
-    <div class="modal-body">
-      <div class="form-group">
-        <label for="edit-name">Name *</label>
-        <input type="text" id="edit-name" [(ngModel)]="formData.name" placeholder="e.g., RdX School Platform">
-      </div>
-
-      <div class="form-group">
-        <label for="edit-description">Description</label>
-        <textarea id="edit-description" [(ngModel)]="formData.description" placeholder="Optional description..."></textarea>
-      </div>
-
-      <div class="form-group">
-        <label>GitHub Repositories / Projects</label>
-        <div class="project-list">
-          <div class="project-item selectable" 
-               *ngFor="let project of projects" 
-               [class.selected]="isProjectSelected(project.id)"
-               (click)="toggleProjectSelection(project.id)">
-            <div class="project-info">
-              <span class="project-name">{{ project.name }}</span>
-              <span class="project-repo" *ngIf="project.repoUrl">{{ project.repoUrl }}</span>
-              <span class="project-package" *ngIf="project.packagePrefix">📦 {{ project.packagePrefix }}</span>
-            </div>
-            <span class="project-provider" *ngIf="project.gitProvider">{{ project.gitProvider }}</span>
-            <span class="checkmark" *ngIf="isProjectSelected(project.id)">✓</span>
-          </div>
-          <div class="empty-projects" *ngIf="projects.length === 0">
-            No projects yet. Create one below.
-          </div>
-        </div>
-        <button class="btn btn-secondary btn-add-new" (click)="openProjectModal()">
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
-          Add New Project
-        </button>
-      </div>
-
-      <div class="form-group">
-        <label>Databases</label>
-        <div class="database-list">
-          <div class="database-item" *ngFor="let db of formData.databases; let i = index">
-            <span class="db-type">{{ db.dbType }}</span>
-            <span class="db-name">{{ db.name }}</span>
-            <button class="btn-remove" (click)="removeDatabase(i)">&times;</button>
-          </div>
-        </div>
-        
-        <div class="add-database">
-          <select [(ngModel)]="newDatabase.dbType">
-            <option *ngFor="let type of dbTypes" [value]="type">{{ type }}</option>
-          </select>
-          <input type="text" [(ngModel)]="newDatabase.name" placeholder="Database name">
-          <input type="text" [(ngModel)]="newDatabase.host" placeholder="Host (optional)">
-          <input type="number" [(ngModel)]="newDatabase.port" placeholder="Port">
-          <button class="btn btn-secondary" (click)="addDatabase()">Add</button>
-        </div>
-      </div>
-    </div>
-
-    <div class="modal-footer">
-      <button class="btn btn-secondary" (click)="closeModals()">Cancel</button>
-      <button class="btn btn-primary" (click)="updateServiceGroup()" [disabled]="!formData.name">Save Changes</button>
-    </div>
-  </div>
-</div>
-
-<!-- Create Project Modal -->
-<div class="modal-overlay" *ngIf="showProjectModal" (click)="showProjectModal = false">
-  <div class="modal modal-md" (click)="$event.stopPropagation()">
-    <div class="modal-header">
-      <h2>Add New Project</h2>
-      <button class="close-btn" (click)="showProjectModal = false">&times;</button>
-    </div>
-    
-    <div class="modal-body">
-      <!-- GitHub Repository Selection -->
-      <div class="form-group" *ngIf="githubConnected">
-        <label>
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" style="vertical-align: middle; margin-right: 6px;">
-            <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
-          </svg>
-          Select from GitHub
-          <span class="github-user">({{ githubUsername }})</span>
-        </label>
-        <div class="repo-search-container">
-          <input type="text" 
-                 [(ngModel)]="repoSearchTerm" 
-                 placeholder="Search repositories..."
-                 class="repo-search-input"
-                 (focus)="repoSearchTerm = repoSearchTerm">
-          <div class="repo-dropdown" *ngIf="filteredRepos.length > 0 && !selectedRepo">
-            <div class="repo-item" *ngFor="let repo of filteredRepos" (click)="selectRepo(repo)">
-              <span class="repo-name">{{ repo.name }}</span>
-              <span class="repo-fullname">{{ repo.fullName }}</span>
-              <span class="repo-private" *ngIf="repo.private === 'true'">Private</span>
-            </div>
-          </div>
-          <div class="selected-repo" *ngIf="selectedRepo">
-            <span class="repo-fullname">{{ selectedRepo.fullName }}</span>
-            <button class="btn-clear" (click)="selectedRepo = null; repoSearchTerm = ''">&times;</button>
-          </div>
-        </div>
-        <span class="hint" *ngIf="loadingRepos">Loading repositories...</span>
-      </div>
-
-      <div class="github-not-connected" *ngIf="!githubConnected">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
-          <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+      <button class="btn btn-primary" (click)="startCreate()">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="12" y1="5" x2="12" y2="19"></line>
+          <line x1="5" y1="12" x2="19" y2="12"></line>
         </svg>
-        <p>GitHub not connected. Connect via Settings to select repositories.</p>
-      </div>
-
-      <div class="divider" *ngIf="githubConnected">
-        <span>or enter manually</span>
-      </div>
-
-      <div class="form-group">
-        <label for="project-name">Project Name *</label>
-        <input type="text" id="project-name" [(ngModel)]="newProject.name" placeholder="e.g., rdx-backend">
-      </div>
-
-      <div class="form-group">
-        <label for="project-repo">Repository URL *</label>
-        <input type="text" id="project-repo" [(ngModel)]="newProject.repoUrl" placeholder="https://github.com/owner/repo">
-      </div>
-
-      <div class="form-row-2">
-        <div class="form-group">
-          <label for="git-provider">Git Provider</label>
-          <select id="git-provider" [(ngModel)]="newProject.gitProvider">
-            <option *ngFor="let provider of gitProviders" [value]="provider">{{ provider }}</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label for="default-branch">Default Branch</label>
-          <input type="text" id="default-branch" [(ngModel)]="newProject.defaultBranch" placeholder="main">
-        </div>
-      </div>
-
-      <div class="form-group">
-        <label for="package-prefix">Package Prefix (for auto-discovery)</label>
-        <input type="text" id="package-prefix" [(ngModel)]="newProject.packagePrefix" placeholder="e.g., com.reddiax.school">
-        <span class="hint">Used to auto-detect this project from log entries</span>
-      </div>
+        New Service Group
+      </button>
     </div>
 
-    <div class="modal-footer">
-      <button class="btn btn-secondary" (click)="showProjectModal = false">Cancel</button>
-      <button class="btn btn-primary" (click)="createProject()" [disabled]="!newProject.name || !newProject.repoUrl">Create Project</button>
+    <div class="loading" *ngIf="loading && serviceGroups.length === 0">
+      <span class="spinner"></span> Loading service groups...
     </div>
-  </div>
+
+    <div class="empty-state" *ngIf="!loading && serviceGroups.length === 0">
+      <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="3" y="3" width="7" height="7"></rect>
+        <rect x="14" y="3" width="7" height="7"></rect>
+        <rect x="14" y="14" width="7" height="7"></rect>
+        <rect x="3" y="14" width="7" height="7"></rect>
+      </svg>
+      <h3>No Service Groups</h3>
+      <p>Create a service group to start tracking requests across multiple services.</p>
+      <button class="btn btn-primary" (click)="startCreate()">Create First Group</button>
+    </div>
+
+    <div class="groups-grid" *ngIf="serviceGroups.length > 0">
+      <div class="group-card" *ngFor="let group of serviceGroups">
+        <div class="card-header">
+          <h3>{{ group.name }}</h3>
+          <div class="card-actions">
+            <button class="btn-icon" title="Edit" (click)="startEdit(group)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+              </svg>
+            </button>
+            <button class="btn-icon danger" title="Delete" (click)="deleteServiceGroup(group)">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="3 6 5 6 21 6"></polyline>
+                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+        
+        <p class="description" *ngIf="group.description">{{ group.description }}</p>
+
+        <div class="section">
+          <h4>Projects ({{ group.projects.length }})</h4>
+          <div class="tags">
+            <span class="tag project" *ngFor="let project of group.projects">
+              {{ project.name }}
+            </span>
+            <span class="tag empty" *ngIf="group.projects.length === 0">No projects</span>
+          </div>
+        </div>
+
+        <div class="section">
+          <h4>Databases ({{ group.databases.length }})</h4>
+          <div class="tags">
+            <span class="tag database" *ngFor="let db of group.databases">
+              <span class="db-type">{{ db.dbType }}</span>
+              {{ db.name }}
+            </span>
+            <span class="tag empty" *ngIf="group.databases.length === 0">No databases</span>
+          </div>
+        </div>
+
+        <div class="card-footer">
+          <span class="created">Created {{ formatDate(group.createdAt) }}</span>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- CREATE/EDIT VIEW with Stepper -->
+  <ng-container *ngIf="viewMode === 'create' || viewMode === 'edit'">
+    <div class="journey-container">
+      <div class="journey-header">
+        <button class="btn-back" (click)="backToList()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+          Back to list
+        </button>
+        <h1>{{ editingGroup ? 'Edit' : 'Create' }} Service Group</h1>
+      </div>
+
+      <!-- Stepper -->
+      <div class="stepper">
+        <div class="step" 
+             *ngFor="let step of steps; let i = index"
+             [class.active]="isStepActive(step)"
+             [class.complete]="isStepComplete(step)"
+             (click)="goToStep(step)">
+          <div class="step-number">
+            <span *ngIf="!isStepComplete(step)">{{ i + 1 }}</span>
+            <svg *ngIf="isStepComplete(step)" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </div>
+          <div class="step-label">
+            <ng-container [ngSwitch]="step">
+              <span *ngSwitchCase="'basics'">Basics</span>
+              <span *ngSwitchCase="'projects'">Projects</span>
+              <span *ngSwitchCase="'databases'">Databases</span>
+              <span *ngSwitchCase="'review'">Review</span>
+            </ng-container>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step Content -->
+      <div class="step-content card">
+        <!-- STEP: Basics -->
+        <div class="step-panel" *ngIf="currentStep === 'basics'">
+          <h2>Basic Information</h2>
+          <p class="step-description">Give your service group a name and optional description.</p>
+          
+          <div class="form-group">
+            <label for="name">Name *</label>
+            <input type="text" id="name" [(ngModel)]="formData.name" placeholder="e.g., RdX School Platform" autofocus>
+          </div>
+
+          <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" [(ngModel)]="formData.description" placeholder="Optional description of this service group..." rows="3"></textarea>
+          </div>
+        </div>
+
+        <!-- STEP: Projects -->
+        <div class="step-panel" *ngIf="currentStep === 'projects'">
+          <h2>Projects & Repositories</h2>
+          <p class="step-description">Select existing projects or create new ones to include in this group.</p>
+
+          <!-- Existing Projects -->
+          <div class="project-list" *ngIf="projects.length > 0">
+            <div class="project-item selectable" 
+                 *ngFor="let project of projects" 
+                 [class.selected]="isProjectSelected(project.id)"
+                 (click)="toggleProjectSelection(project.id)">
+              <div class="project-info">
+                <span class="project-name">{{ project.name }}</span>
+                <span class="project-repo" *ngIf="project.repoUrl">{{ project.repoUrl }}</span>
+                <span class="project-package" *ngIf="project.packagePrefix">{{ project.packagePrefix }}</span>
+              </div>
+              <span class="project-provider" *ngIf="project.gitProvider">{{ project.gitProvider }}</span>
+              <span class="checkmark" *ngIf="isProjectSelected(project.id)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+              </span>
+            </div>
+          </div>
+          
+          <div class="empty-projects" *ngIf="projects.length === 0 && !showAddProject">
+            <p>No projects yet. Add your first project below.</p>
+          </div>
+
+          <!-- Add New Project (Inline) -->
+          <div class="add-project-section">
+            <button class="btn btn-outline" (click)="toggleAddProject()" *ngIf="!showAddProject">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              Add New Project
+            </button>
+
+            <div class="add-project-form" *ngIf="showAddProject">
+              <div class="form-section-header">
+                <h3>Add New Project</h3>
+                <button class="btn-icon" (click)="toggleAddProject()">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+              </div>
+
+              <!-- GitHub Repo Selection -->
+              <div class="form-group" *ngIf="githubConnected">
+                <label>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="currentColor" class="github-icon">
+                    <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                  </svg>
+                  Select from GitHub
+                  <span class="github-user">({{ githubUsername }})</span>
+                </label>
+                <div class="repo-search-container">
+                  <input type="text" 
+                         [(ngModel)]="repoSearchTerm" 
+                         placeholder="Search your repositories..."
+                         class="input">
+                  <div class="repo-dropdown" *ngIf="filteredRepos.length > 0 && !selectedRepo">
+                    <div class="repo-item" *ngFor="let repo of filteredRepos" (click)="selectRepo(repo)">
+                      <span class="repo-name">{{ repo.name }}</span>
+                      <span class="repo-fullname">{{ repo.fullName }}</span>
+                      <span class="repo-private" *ngIf="repo.private === 'true'">Private</span>
+                    </div>
+                  </div>
+                  <div class="selected-repo" *ngIf="selectedRepo">
+                    <span>{{ selectedRepo.fullName }}</span>
+                    <button class="btn-clear" (click)="selectedRepo = null; repoSearchTerm = ''">&times;</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="github-not-connected" *ngIf="!githubConnected">
+                <p>GitHub not connected. Enter repository details manually or connect via Settings.</p>
+              </div>
+
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="project-name">Project Name *</label>
+                  <input type="text" id="project-name" [(ngModel)]="newProject.name" placeholder="e.g., rdx-backend">
+                </div>
+                <div class="form-group">
+                  <label for="default-branch">Default Branch</label>
+                  <input type="text" id="default-branch" [(ngModel)]="newProject.defaultBranch" placeholder="main">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="project-repo">Repository URL *</label>
+                <input type="text" id="project-repo" [(ngModel)]="newProject.repoUrl" placeholder="https://github.com/owner/repo">
+              </div>
+
+              <div class="form-group">
+                <label for="package-prefix">Package Prefix (for auto-discovery)</label>
+                <input type="text" id="package-prefix" [(ngModel)]="newProject.packagePrefix" placeholder="e.g., com.reddiax.school">
+                <span class="hint">Used to auto-detect this project from log entries</span>
+              </div>
+
+              <div class="form-actions">
+                <button class="btn btn-secondary" (click)="toggleAddProject()">Cancel</button>
+                <button class="btn btn-primary" (click)="createProject()" [disabled]="!newProject.name || !newProject.repoUrl || loading">
+                  <span class="spinner" *ngIf="loading"></span>
+                  {{ loading ? 'Creating...' : 'Create Project' }}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- STEP: Databases -->
+        <div class="step-panel" *ngIf="currentStep === 'databases'">
+          <h2>Database Connections</h2>
+          <p class="step-description">Add database connections for tracing queries across your services. This step is optional.</p>
+
+          <div class="database-list" *ngIf="formData.databases && formData.databases.length > 0">
+            <div class="database-item" *ngFor="let db of formData.databases; let i = index">
+              <div class="db-info">
+                <span class="db-type-badge">{{ db.dbType }}</span>
+                <span class="db-name">{{ db.name }}</span>
+                <span class="db-host" *ngIf="db.host">{{ db.host }}{{ db.port ? ':' + db.port : '' }}</span>
+              </div>
+              <button class="btn-icon danger" (click)="removeDatabase(i)">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="18" y1="6" x2="6" y2="18"/>
+                  <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="add-database-form">
+            <h4>Add Database</h4>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="db-type">Type</label>
+                <select id="db-type" [(ngModel)]="newDatabase.dbType">
+                  <option *ngFor="let type of dbTypes" [value]="type">{{ type }}</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="db-name">Name *</label>
+                <input type="text" id="db-name" [(ngModel)]="newDatabase.name" placeholder="e.g., main-db">
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="db-host">Host</label>
+                <input type="text" id="db-host" [(ngModel)]="newDatabase.host" placeholder="localhost">
+              </div>
+              <div class="form-group">
+                <label for="db-port">Port</label>
+                <input type="number" id="db-port" [(ngModel)]="newDatabase.port" placeholder="5432">
+              </div>
+            </div>
+            <button class="btn btn-secondary" (click)="addDatabase()" [disabled]="!newDatabase.name">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              Add Database
+            </button>
+          </div>
+        </div>
+
+        <!-- STEP: Review -->
+        <div class="step-panel" *ngIf="currentStep === 'review'">
+          <h2>Review & Create</h2>
+          <p class="step-description">Review your service group configuration before creating.</p>
+
+          <div class="review-section">
+            <h4>Basic Info</h4>
+            <div class="review-item">
+              <span class="review-label">Name</span>
+              <span class="review-value">{{ formData.name }}</span>
+            </div>
+            <div class="review-item" *ngIf="formData.description">
+              <span class="review-label">Description</span>
+              <span class="review-value">{{ formData.description }}</span>
+            </div>
+          </div>
+
+          <div class="review-section">
+            <h4>Projects ({{ getSelectedProjects().length }})</h4>
+            <div class="review-tags" *ngIf="getSelectedProjects().length > 0">
+              <span class="tag project" *ngFor="let project of getSelectedProjects()">
+                {{ project.name }}
+              </span>
+            </div>
+            <p class="review-empty" *ngIf="getSelectedProjects().length === 0">No projects selected</p>
+          </div>
+
+          <div class="review-section">
+            <h4>Databases ({{ formData.databases?.length || 0 }})</h4>
+            <div class="review-tags" *ngIf="formData.databases && formData.databases.length > 0">
+              <span class="tag database" *ngFor="let db of formData.databases">
+                <span class="db-type">{{ db.dbType }}</span>
+                {{ db.name }}
+              </span>
+            </div>
+            <p class="review-empty" *ngIf="!formData.databases || formData.databases.length === 0">No databases configured</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Buttons -->
+      <div class="journey-footer">
+        <button class="btn btn-secondary" *ngIf="currentStepIndex > 0" (click)="prevStep()">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M19 12H5M12 19l-7-7 7-7"/>
+          </svg>
+          Back
+        </button>
+        <div class="spacer"></div>
+        
+        <button class="btn btn-primary" *ngIf="currentStep !== 'review'" (click)="nextStep()" [disabled]="!canGoNext">
+          Continue
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M12 5l7 7-7 7"/>
+          </svg>
+        </button>
+        
+        <button class="btn btn-success" *ngIf="currentStep === 'review'" (click)="submitForm()" [disabled]="loading">
+          <span class="spinner" *ngIf="loading"></span>
+          {{ loading ? 'Saving...' : (editingGroup ? 'Save Changes' : 'Create Service Group') }}
+        </button>
+      </div>
+    </div>
+  </ng-container>
 </div>

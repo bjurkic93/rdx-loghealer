@@ -5,6 +5,9 @@ import { ApiService } from '../../core/services/api.service';
 import { ServiceGroup, ServiceGroupRequest, DatabaseConnectionRequest, Project, ProjectRequest } from '../../core/models/service-group.model';
 import { GitHubRepository } from '../../core/models/github.model';
 
+type ViewMode = 'list' | 'create' | 'edit';
+type CreateStep = 'basics' | 'projects' | 'databases' | 'review';
+
 @Component({
   selector: 'app-service-groups',
   standalone: true,
@@ -23,12 +26,18 @@ export class ServiceGroupsComponent implements OnInit {
   loadingRepos = false;
   loading = false;
   error: string | null = null;
+  successMessage: string | null = null;
 
-  showCreateModal = false;
-  showEditModal = false;
-  showProjectModal = false;
+  // View mode instead of modals
+  viewMode: ViewMode = 'list';
   editingGroup: ServiceGroup | null = null;
 
+  // Stepper
+  currentStep: CreateStep = 'basics';
+  steps: CreateStep[] = ['basics', 'projects', 'databases', 'review'];
+
+  // Project creation inline
+  showAddProject = false;
   repoSearchTerm = '';
   selectedRepo: GitHubRepository | null = null;
 
@@ -134,17 +143,22 @@ export class ServiceGroupsComponent implements OnInit {
     this.repoSearchTerm = repo.fullName;
   }
 
-  openCreateModal(): void {
+  // Navigation
+  startCreate(): void {
     this.formData = {
       name: '',
       description: '',
       projectIds: [],
       databases: []
     };
-    this.showCreateModal = true;
+    this.currentStep = 'basics';
+    this.viewMode = 'create';
+    this.editingGroup = null;
+    this.error = null;
+    this.successMessage = null;
   }
 
-  openEditModal(group: ServiceGroup): void {
+  startEdit(group: ServiceGroup): void {
     this.editingGroup = group;
     this.formData = {
       name: group.name,
@@ -159,45 +173,65 @@ export class ServiceGroupsComponent implements OnInit {
         schemaName: d.schemaName
       }))
     };
-    this.showEditModal = true;
+    this.currentStep = 'basics';
+    this.viewMode = 'edit';
+    this.error = null;
+    this.successMessage = null;
   }
 
-  closeModals(): void {
-    this.showCreateModal = false;
-    this.showEditModal = false;
-    this.showProjectModal = false;
+  backToList(): void {
+    this.viewMode = 'list';
     this.editingGroup = null;
+    this.showAddProject = false;
+    this.resetNewProject();
   }
 
-  openProjectModal(): void {
-    this.newProject = {
-      name: '',
-      repoUrl: '',
-      gitProvider: 'GITHUB',
-      defaultBranch: 'main',
-      packagePrefix: ''
-    };
-    this.showProjectModal = true;
+  // Stepper navigation
+  get currentStepIndex(): number {
+    return this.steps.indexOf(this.currentStep);
   }
 
-  createProject(): void {
-    if (!this.newProject.name || !this.newProject.repoUrl) return;
-
-    this.apiService.createProject(this.newProject).subscribe({
-      next: (project) => {
-        this.projects.push(project);
-        this.formData.projectIds = this.formData.projectIds || [];
-        this.formData.projectIds.push(project.id);
-        this.showProjectModal = false;
-        this.newProject = { name: '', repoUrl: '', gitProvider: 'GITHUB', defaultBranch: 'main', packagePrefix: '' };
-      },
-      error: (err) => {
-        this.error = 'Failed to create project';
-        console.error('Error creating project:', err);
-      }
-    });
+  get canGoNext(): boolean {
+    switch (this.currentStep) {
+      case 'basics':
+        return !!this.formData.name?.trim();
+      default:
+        return true;
+    }
   }
 
+  nextStep(): void {
+    const idx = this.currentStepIndex;
+    if (idx < this.steps.length - 1) {
+      this.currentStep = this.steps[idx + 1];
+    }
+  }
+
+  prevStep(): void {
+    const idx = this.currentStepIndex;
+    if (idx > 0) {
+      this.currentStep = this.steps[idx - 1];
+    }
+  }
+
+  goToStep(step: CreateStep): void {
+    // Only allow going to previous steps or current step
+    const targetIdx = this.steps.indexOf(step);
+    if (targetIdx <= this.currentStepIndex) {
+      this.currentStep = step;
+    }
+  }
+
+  isStepComplete(step: CreateStep): boolean {
+    const stepIdx = this.steps.indexOf(step);
+    return stepIdx < this.currentStepIndex;
+  }
+
+  isStepActive(step: CreateStep): boolean {
+    return step === this.currentStep;
+  }
+
+  // Project management
   toggleProjectSelection(projectId: string): void {
     this.formData.projectIds = this.formData.projectIds || [];
     const index = this.formData.projectIds.indexOf(projectId);
@@ -216,6 +250,53 @@ export class ServiceGroupsComponent implements OnInit {
     return this.projects.find(p => p.id === id);
   }
 
+  getSelectedProjects(): Project[] {
+    return this.projects.filter(p => this.formData.projectIds?.includes(p.id));
+  }
+
+  toggleAddProject(): void {
+    this.showAddProject = !this.showAddProject;
+    if (!this.showAddProject) {
+      this.resetNewProject();
+    }
+  }
+
+  resetNewProject(): void {
+    this.newProject = {
+      name: '',
+      repoUrl: '',
+      gitProvider: 'GITHUB',
+      defaultBranch: 'main',
+      packagePrefix: ''
+    };
+    this.selectedRepo = null;
+    this.repoSearchTerm = '';
+  }
+
+  createProject(): void {
+    if (!this.newProject.name || !this.newProject.repoUrl) return;
+
+    this.loading = true;
+    this.apiService.createProject(this.newProject).subscribe({
+      next: (project) => {
+        this.projects.push(project);
+        this.formData.projectIds = this.formData.projectIds || [];
+        this.formData.projectIds.push(project.id);
+        this.showAddProject = false;
+        this.resetNewProject();
+        this.loading = false;
+        this.successMessage = `Project "${project.name}" created and selected`;
+        setTimeout(() => this.successMessage = null, 3000);
+      },
+      error: (err) => {
+        this.error = 'Failed to create project';
+        this.loading = false;
+        console.error('Error creating project:', err);
+      }
+    });
+  }
+
+  // Database management
   addDatabase(): void {
     if (this.newDatabase.name) {
       this.formData.databases = this.formData.databases || [];
@@ -228,12 +309,25 @@ export class ServiceGroupsComponent implements OnInit {
     this.formData.databases?.splice(index, 1);
   }
 
+  // Submit
+  submitForm(): void {
+    if (this.editingGroup) {
+      this.updateServiceGroup();
+    } else {
+      this.createServiceGroup();
+    }
+  }
+
   createServiceGroup(): void {
     this.loading = true;
+    this.error = null;
+    
     this.apiService.createServiceGroup(this.formData).subscribe({
       next: () => {
-        this.closeModals();
         this.loadServiceGroups();
+        this.backToList();
+        this.successMessage = `Service Group "${this.formData.name}" created successfully`;
+        setTimeout(() => this.successMessage = null, 5000);
       },
       error: (err) => {
         this.error = 'Failed to create service group';
@@ -247,10 +341,14 @@ export class ServiceGroupsComponent implements OnInit {
     if (!this.editingGroup) return;
 
     this.loading = true;
+    this.error = null;
+    
     this.apiService.updateServiceGroup(this.editingGroup.id, this.formData).subscribe({
       next: () => {
-        this.closeModals();
         this.loadServiceGroups();
+        this.backToList();
+        this.successMessage = `Service Group "${this.formData.name}" updated successfully`;
+        setTimeout(() => this.successMessage = null, 5000);
       },
       error: (err) => {
         this.error = 'Failed to update service group';
@@ -266,11 +364,22 @@ export class ServiceGroupsComponent implements OnInit {
     this.apiService.deleteServiceGroup(group.id).subscribe({
       next: () => {
         this.loadServiceGroups();
+        this.successMessage = `Service Group "${group.name}" deleted`;
+        setTimeout(() => this.successMessage = null, 3000);
       },
       error: (err) => {
         this.error = 'Failed to delete service group';
         console.error('Error deleting service group:', err);
       }
     });
+  }
+
+  formatDate(dateStr: string | null | undefined): string {
+    if (!dateStr) return '-';
+    try {
+      return new Date(dateStr).toLocaleDateString();
+    } catch {
+      return '-';
+    }
   }
 }

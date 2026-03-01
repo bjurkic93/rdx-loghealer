@@ -10,7 +10,7 @@ export interface LogEntry {
   fingerprint: string | null;
   threadName: string | null;
   metadata: Record<string, unknown> | null;
-  timestamp: string;
+  timestamp: string | number;
   traceId: string | null;
   spanId: string | null;
   hostName: string | null;

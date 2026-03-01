@@ -111,12 +111,28 @@ export class ExceptionDetailComponent implements OnInit {
     return status?.toLowerCase().replace('_', '-') || 'new';
   }
 
-  formatTimestamp(ts: string): string {
+  formatTimestamp(ts: string | number | null | undefined): string {
     if (!ts) return '-';
     try {
-      return new Date(ts).toLocaleString();
+      let date: Date;
+      
+      if (typeof ts === 'number') {
+        date = new Date(ts);
+      } else if (typeof ts === 'string') {
+        const numValue = Number(ts);
+        if (!isNaN(numValue) && numValue > 1000000000000) {
+          date = new Date(numValue);
+        } else {
+          date = new Date(ts);
+        }
+      } else {
+        return '-';
+      }
+      
+      if (isNaN(date.getTime())) return '-';
+      return date.toLocaleString();
     } catch {
-      return ts;
+      return '-';
     }
   }
 

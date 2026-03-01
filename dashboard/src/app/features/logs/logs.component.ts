@@ -104,11 +104,26 @@ export class LogsComponent implements OnInit {
     return level?.toLowerCase() || 'info';
   }
 
-  formatTimestamp(ts: string | number): string {
+  formatTimestamp(ts: string | number | null | undefined): string {
     if (!ts) return '-';
     try {
-      // Handle both epoch millis (number) and ISO string
-      const date = typeof ts === 'number' ? new Date(ts) : new Date(ts);
+      let date: Date;
+      
+      if (typeof ts === 'number') {
+        date = new Date(ts);
+      } else if (typeof ts === 'string') {
+        // Try parsing as number first (epoch millis as string)
+        const numValue = Number(ts);
+        if (!isNaN(numValue) && numValue > 1000000000000) {
+          date = new Date(numValue);
+        } else {
+          // Parse as ISO string
+          date = new Date(ts);
+        }
+      } else {
+        return '-';
+      }
+      
       if (isNaN(date.getTime())) return '-';
       return date.toLocaleString();
     } catch {

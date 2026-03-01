@@ -6,8 +6,8 @@ export interface ExceptionGroup {
   exceptionClass: string;
   message: string;
   sampleStackTrace: string;
-  firstSeen: string;
-  lastSeen: string;
+  firstSeen: string | number;
+  lastSeen: string | number;
   count: number;
   status: ExceptionStatus;
   lastAnalysisId: string | null;
