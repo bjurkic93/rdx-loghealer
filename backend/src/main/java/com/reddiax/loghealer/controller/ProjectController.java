@@ -49,6 +49,14 @@ public class ProjectController {
         return ResponseEntity.ok(toResponse(project));
     }
 
+    @GetMapping("/by-name/{name}")
+    public ResponseEntity<ProjectResponse> getProjectByName(@PathVariable String name) {
+        log.info("Getting project by name: {}", name);
+        Project project = projectRepository.findByName(name)
+                .orElseThrow(() -> new RuntimeException("Project not found with name: " + name));
+        return ResponseEntity.ok(toResponse(project));
+    }
+
     @PostMapping
     public ResponseEntity<ProjectResponse> createProject(@Valid @RequestBody ProjectRequest request) {
         log.info("Creating project: {}", request.getName());

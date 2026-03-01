@@ -60,19 +60,34 @@ public class CodeFixService {
         }
 
         var exception = exceptionOpt.get();
-        var projectOpt = projectRepository.findById(UUID.fromString(request.getProjectId()));
-        if (projectOpt.isEmpty()) {
+        
+        // Find project - first try by UUID if provided, then by name from exception
+        Project project = null;
+        if (request.getProjectId() != null && !request.getProjectId().isEmpty()) {
+            try {
+                project = projectRepository.findById(UUID.fromString(request.getProjectId())).orElse(null);
+            } catch (IllegalArgumentException e) {
+                // Not a UUID, try by name
+                project = projectRepository.findByName(request.getProjectId()).orElse(null);
+            }
+        }
+        
+        // If still not found, try to find by exception's projectId (which is the project name)
+        if (project == null && exception.getProjectId() != null) {
+            project = projectRepository.findByName(exception.getProjectId()).orElse(null);
+        }
+        
+        if (project == null) {
             return CodeFixResponse.builder()
                     .status("ERROR")
-                    .message("Project not found: " + request.getProjectId())
+                    .message("Project not found. Please create a project named '" + exception.getProjectId() + "' with a GitHub repository URL.")
                     .build();
         }
 
-        var project = projectOpt.get();
         if (project.getRepoUrl() == null || project.getRepoUrl().isEmpty()) {
             return CodeFixResponse.builder()
                     .status("ERROR")
-                    .message("Project has no GitHub repository configured")
+                    .message("Project '" + project.getName() + "' has no GitHub repository configured. Please add a repository URL.")
                     .build();
         }
 
@@ -83,7 +98,7 @@ public class CodeFixService {
         } else {
             conversation = FixConversation.builder()
                     .exceptionGroupId(request.getExceptionGroupId())
-                    .projectId(request.getProjectId())
+                    .projectId(project.getId().toString())
                     .repositoryFullName(extractRepoFullName(project.getRepoUrl()))
                     .status(FixConversation.ConversationStatus.ACTIVE)
                     .build();
