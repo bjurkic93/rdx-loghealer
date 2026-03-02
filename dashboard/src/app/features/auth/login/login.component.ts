@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
@@ -11,11 +11,8 @@ import { AuthService } from '../../../core/services/auth.service';
           <span class="logo-icon">L</span>
           <h1>LogHealer</h1>
         </div>
-        <p class="subtitle">AI-Powered Log Analysis & Error Resolution</p>
-        <button class="btn btn-primary login-btn" (click)="login()">
-          Sign in with RdX Account
-        </button>
-        <p class="note">Only SUPER_ADMIN users can access this dashboard</p>
+        <p class="subtitle">Redirecting to login...</p>
+        <div class="spinner"></div>
       </div>
     </div>
   `,
@@ -69,37 +66,28 @@ import { AuthService } from '../../../core/services/auth.service';
     
     .subtitle {
       color: var(--text-secondary);
-      margin-bottom: 32px;
+      margin-bottom: 24px;
     }
     
-    .login-btn {
-      width: 100%;
-      padding: 14px 24px;
-      font-size: 16px;
-      background: var(--primary);
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 500;
-      transition: background 0.2s;
+    .spinner {
+      width: 32px;
+      height: 32px;
+      border: 3px solid var(--border-color);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      margin: 0 auto;
+      animation: spin 1s linear infinite;
     }
     
-    .login-btn:hover {
-      background: var(--primary-hover);
-    }
-    
-    .note {
-      margin-top: 24px;
-      font-size: 12px;
-      color: var(--text-muted);
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
   `]
 })
-export class LoginComponent {
+export class LoginComponent implements OnInit {
   constructor(private authService: AuthService) {}
 
-  login(): void {
+  ngOnInit(): void {
     this.authService.initiateLogin();
   }
 }
