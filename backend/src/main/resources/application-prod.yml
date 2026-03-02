@@ -53,6 +53,7 @@ management:
       show-details: when_authorized
 
 loghealer:
+  base-url: https://loghealer.reddia-x.com
   ingestion:
     batch-size: 1000
     queue-capacity: 10000
@@ -60,10 +61,24 @@ loghealer:
     index-prefix: loghealer
     logs-retention-days: 90
   ai:
-    default-provider: ${AI_PROVIDER:claude}
+    default-provider: ${AI_PROVIDER:cursor}
+    cursor:
+      api-key: ${CURSOR_API_KEY:}
+      webhook-secret: ${CURSOR_WEBHOOK_SECRET:}
     claude:
       api-key: ${CLAUDE_API_KEY:}
       model: claude-opus-4-6
     openai:
       api-key: ${OPENAI_API_KEY:}
       model: gpt-4o
+  monitoring:
+    enabled: ${MONITORING_ENABLED:true}
+    default-check-interval-seconds: 30
+    email:
+      enabled: ${MONITORING_EMAIL_ENABLED:false}
+  github:
+    client-id: ${GITHUB_CLIENT_ID:}
+    client-secret: ${GITHUB_CLIENT_SECRET:}
+  email:
+    sendgrid-apikey: ${SENDGRID_API_KEY:}
+    from: ${FROM_EMAIL:no-reply@reddia-x.com}
