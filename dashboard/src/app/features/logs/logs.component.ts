@@ -136,7 +136,11 @@ export class LogsComponent implements OnInit {
 
   openTraceView(traceId: string, event: Event): void {
     event.stopPropagation();
-    this.router.navigate(['/traces', traceId]);
+    console.log('Opening trace view for:', traceId);
+    this.router.navigate(['/traces', traceId]).then(
+      success => console.log('Navigation success:', success),
+      error => console.error('Navigation error:', error)
+    );
   }
 
   formatTimestamp(ts: string | number | null | undefined): string {
