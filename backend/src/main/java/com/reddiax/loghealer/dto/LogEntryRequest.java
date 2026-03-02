@@ -1,5 +1,6 @@
 package com.reddiax.loghealer.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonSetter;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
@@ -12,6 +13,7 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class LogEntryRequest {
 
     @NotBlank(message = "Level is required")
