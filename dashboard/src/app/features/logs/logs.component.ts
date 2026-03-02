@@ -1,6 +1,7 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
 import { LogEntry, LogSearchRequest } from '../../core/models/log.model';
 
@@ -13,6 +14,7 @@ import { LogEntry, LogSearchRequest } from '../../core/models/log.model';
 })
 export class LogsComponent implements OnInit {
   private apiService = inject(ApiService);
+  private router = inject(Router);
 
   logs: LogEntry[] = [];
   loading = true;
@@ -26,7 +28,6 @@ export class LogsComponent implements OnInit {
   selectedLevels: string[] = [];
   levels = ['ERROR', 'WARN', 'INFO', 'DEBUG', 'TRACE'];
   selectedProjectId = '';
-  selectedTraceId = '';
   availableProjects: string[] = [];
 
   expandedLogId: string | null = null;
@@ -55,7 +56,6 @@ export class LogsComponent implements OnInit {
       query: this.searchQuery || undefined,
       levels: this.selectedLevels.length > 0 ? this.selectedLevels : undefined,
       projectId: this.selectedProjectId || undefined,
-      traceId: this.selectedTraceId || undefined,
       page: this.currentPage,
       size: this.pageSize,
       sortBy: 'timestamp',
@@ -134,17 +134,9 @@ export class LogsComponent implements OnInit {
     return level?.toLowerCase() || 'info';
   }
 
-  filterByTraceId(traceId: string, event: Event): void {
+  openTraceView(traceId: string, event: Event): void {
     event.stopPropagation();
-    this.selectedTraceId = traceId;
-    this.currentPage = 0;
-    this.loadLogs();
-  }
-
-  clearTraceIdFilter(): void {
-    this.selectedTraceId = '';
-    this.currentPage = 0;
-    this.loadLogs();
+    this.router.navigate(['/traces', traceId]);
   }
 
   formatTimestamp(ts: string | number | null | undefined): string {

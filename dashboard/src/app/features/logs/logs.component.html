@@ -33,13 +33,6 @@
       }
     </div>
 
-    @if (selectedTraceId) {
-      <div class="active-filter">
-        <span class="filter-label">Request ID:</span>
-        <code class="filter-value">{{ selectedTraceId }}</code>
-        <button class="btn-clear" (click)="clearTraceIdFilter()" title="Clear filter">×</button>
-      </div>
-    }
   </div>
 
   @if (loading) {
@@ -57,7 +50,7 @@
               <span class="project-badge">{{ log.projectId }}</span>
             }
             @if (log.traceId) {
-              <button class="trace-id-btn" (click)="filterByTraceId(log.traceId, $event)" title="Filter by Request ID">
+              <button class="trace-id-btn" (click)="openTraceView(log.traceId, $event)" title="View Request Timeline">
                 <svg viewBox="0 0 24 24" fill="none" width="12" height="12">
                   <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                   <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
