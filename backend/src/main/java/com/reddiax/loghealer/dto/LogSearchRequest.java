@@ -24,6 +24,8 @@ public class LogSearchRequest {
     
     private String environment;
     
+    private String traceId;
+    
     private Instant fromTimestamp;
     
     private Instant toTimestamp;

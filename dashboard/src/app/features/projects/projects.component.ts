@@ -30,8 +30,7 @@ export class ProjectsComponent implements OnInit {
     projectKey: '',
     repoUrl: '',
     gitProvider: 'GITHUB',
-    defaultBranch: 'main',
-    packagePrefix: ''
+    defaultBranch: 'main'
   };
 
   // GitHub repo search
@@ -99,9 +98,6 @@ export class ProjectsComponent implements OnInit {
         if (info.found && info.artifactId) {
           this.formData.projectKey = info.artifactId;
           this.formData.name = info.name || this.formatRepoNameAsDisplayName(info.artifactId);
-          if (info.groupId) {
-            this.formData.packagePrefix = info.groupId;
-          }
         } else {
           // Fallback to repo name if pom.xml not found
           this.formData.projectKey = repo.name;
@@ -138,8 +134,7 @@ export class ProjectsComponent implements OnInit {
       projectKey: project.projectKey,
       repoUrl: project.repoUrl || '',
       gitProvider: project.gitProvider || 'GITHUB',
-      defaultBranch: project.defaultBranch || 'main',
-      packagePrefix: project.packagePrefix || ''
+      defaultBranch: project.defaultBranch || 'main'
     };
     this.repoSearchQuery = project.repoUrl || '';
   }
@@ -156,8 +151,7 @@ export class ProjectsComponent implements OnInit {
       projectKey: '',
       repoUrl: '',
       gitProvider: 'GITHUB',
-      defaultBranch: 'main',
-      packagePrefix: ''
+      defaultBranch: 'main'
     };
     this.repoSearchQuery = '';
   }

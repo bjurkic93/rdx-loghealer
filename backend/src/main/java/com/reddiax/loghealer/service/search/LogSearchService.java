@@ -68,6 +68,10 @@ public class LogSearchService {
                 boolQuery.filter(f -> f.term(t -> t.field("environment").value(request.getEnvironment())));
             }
 
+            if (request.getTraceId() != null) {
+                boolQuery.filter(f -> f.term(t -> t.field("traceId").value(request.getTraceId())));
+            }
+
             if (request.getFromTimestamp() != null || request.getToTimestamp() != null) {
                 final Double fromMs = request.getFromTimestamp() != null 
                     ? Double.valueOf(request.getFromTimestamp().toEpochMilli()) : null;

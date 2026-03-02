@@ -33,6 +33,7 @@ export interface LogSearchRequest {
   logger?: string;
   exceptionClass?: string;
   environment?: string;
+  traceId?: string;
   from?: string;
   to?: string;
   page?: number;
