@@ -8,7 +8,7 @@ import { AuthService } from '../../../core/services/auth.service';
     <div class="login-container">
       <div class="login-card">
         <div class="logo">
-          <span class="logo-icon">L</span>
+          <img src="assets/logo.png" alt="LogHealer" class="logo-img">
           <h1>LogHealer</h1>
         </div>
         <p class="subtitle">Redirecting to login...</p>
@@ -44,17 +44,10 @@ import { AuthService } from '../../../core/services/auth.service';
       margin-bottom: 8px;
     }
     
-    .logo-icon {
+    .logo-img {
       width: 48px;
       height: 48px;
-      background: var(--primary);
       border-radius: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: 700;
-      font-size: 24px;
-      color: white;
     }
     
     h1 {
