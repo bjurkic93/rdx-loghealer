@@ -586,6 +586,26 @@
   }
 }
 
+// Cursor Agent button
+.btn-cursor {
+  background: linear-gradient(135deg, #00d4aa, #00b894);
+  color: #0d1117;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+
+  &:hover:not(:disabled) {
+    background: linear-gradient(135deg, #00e6b8, #00cca0);
+    transform: translateY(-1px);
+  }
+
+  .cursor-icon {
+    width: 18px;
+    height: 18px;
+  }
+}
+
 // Codex-style button
 .btn-codex {
   background: linear-gradient(135deg, #8b5cf6, #a371f7);
@@ -654,6 +674,12 @@
   border-bottom: 1px solid #21262d;
   background: #161b22;
 
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
   h2 {
     display: flex;
     align-items: center;
@@ -662,6 +688,40 @@
     font-weight: 600;
     color: #e6edf3;
     margin: 0;
+
+    .cursor-icon {
+      width: 22px;
+      height: 22px;
+      color: #00d4aa;
+    }
+
+    .status-badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 3px 8px;
+      border-radius: 12px;
+      text-transform: uppercase;
+
+      &.creating, &.running {
+        background: rgba(56, 139, 253, 0.15);
+        color: #58a6ff;
+      }
+
+      &.finished {
+        background: rgba(46, 160, 67, 0.15);
+        color: #3fb950;
+      }
+
+      &.error, &.failed {
+        background: rgba(248, 81, 73, 0.15);
+        color: #f85149;
+      }
+
+      &.stopped {
+        background: rgba(139, 148, 158, 0.15);
+        color: #8b949e;
+      }
+    }
 
     .ai-icon {
       width: 22px;
@@ -711,13 +771,13 @@
   background: #161b22;
   border: 1px solid #21262d;
 
-  &.user {
+  &.user, &.user_message {
     background: #21262d;
     border-color: #30363d;
     margin-left: 32px;
   }
 
-  &.assistant {
+  &.assistant, &.assistant_message {
     background: rgba(163, 113, 247, 0.08);
     border-color: rgba(163, 113, 247, 0.3);
     margin-right: 32px;

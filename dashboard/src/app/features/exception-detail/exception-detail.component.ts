@@ -1,13 +1,14 @@
-import { Component, OnInit, inject, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { ApiService } from '../../core/services/api.service';
+import { ApiService, CursorAgentResponse, CursorConversationMessage } from '../../core/services/api.service';
 import { ExceptionGroup } from '../../core/models/exception.model';
 import { AiAnalysisResponse } from '../../core/models/ai.model';
 import { GitHubConnection, PullRequestResponse } from '../../core/models/github.model';
 import { Project } from '../../core/models/service-group.model';
 import { CodeFixResponse, FileChange, ConversationMessage } from '../../core/models/codefix.model';
+import { interval, Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-exception-detail',
@@ -16,11 +17,12 @@ import { CodeFixResponse, FileChange, ConversationMessage } from '../../core/mod
   templateUrl: './exception-detail.component.html',
   styleUrl: './exception-detail.component.scss'
 })
-export class ExceptionDetailComponent implements OnInit {
+export class ExceptionDetailComponent implements OnInit, OnDestroy {
   @ViewChild('chatContainer') chatContainer!: ElementRef;
   
   private route = inject(ActivatedRoute);
   private apiService = inject(ApiService);
+  private pollingSubscription?: Subscription;
 
   exception: ExceptionGroup | null = null;
   loading = true;
@@ -49,6 +51,13 @@ export class ExceptionDetailComponent implements OnInit {
   chatInput = '';
   chatLoading = false;
   showCodeFixPanel = false;
+
+  // Cursor Agent
+  cursorAgentId: string | null = null;
+  cursorAgentStatus: string | null = null;
+  cursorAgentUrl: string | null = null;
+  cursorConversation: CursorConversationMessage[] = [];
+  showCursorPanel = false;
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -387,5 +396,187 @@ export class ExceptionDetailComponent implements OnInit {
       event.preventDefault();
       this.sendMessage();
     }
+  }
+
+  // Cursor Agent Methods
+  launchCursorAgent(): void {
+    if (!this.exception?.id || !this.discoveredProject?.id) return;
+
+    this.showCursorPanel = true;
+    this.chatLoading = true;
+    this.cursorConversation = [];
+
+    this.apiService.launchCursorAgent(this.exception.id, this.discoveredProject.id).subscribe({
+      next: (response) => {
+        this.cursorAgentId = response.agentId;
+        this.cursorAgentStatus = response.status;
+        this.cursorAgentUrl = response.agentUrl || null;
+        this.chatLoading = false;
+
+        this.cursorConversation.push({
+          id: 'system-1',
+          type: 'system',
+          text: `Agent launched: ${response.message || 'Analyzing code...'}`
+        });
+
+        if (response.agentUrl) {
+          this.cursorConversation.push({
+            id: 'system-2',
+            type: 'system',
+            text: `View agent progress: ${response.agentUrl}`
+          });
+        }
+
+        this.startPollingAgentStatus();
+        this.scrollChatToBottom();
+      },
+      error: (err) => {
+        this.chatLoading = false;
+        this.cursorConversation.push({
+          id: 'error',
+          type: 'system',
+          text: `Error: ${err.error?.message || err.message || 'Failed to launch agent'}`
+        });
+      }
+    });
+  }
+
+  private startPollingAgentStatus(): void {
+    if (!this.cursorAgentId) return;
+
+    this.pollingSubscription = interval(5000).subscribe(() => {
+      if (!this.cursorAgentId) {
+        this.stopPolling();
+        return;
+      }
+
+      this.apiService.getCursorAgentStatus(this.cursorAgentId).subscribe({
+        next: (response) => {
+          const prevStatus = this.cursorAgentStatus;
+          this.cursorAgentStatus = response.status;
+
+          if (response.status !== prevStatus) {
+            this.cursorConversation.push({
+              id: `status-${Date.now()}`,
+              type: 'system',
+              text: `Status: ${response.status}`
+            });
+          }
+
+          if (response.status === 'FINISHED') {
+            this.stopPolling();
+            this.loadCursorConversation();
+            
+            if (response.prUrl) {
+              this.pullRequest = {
+                id: this.cursorAgentId!,
+                prNumber: 0,
+                title: 'Auto-fix by Cursor Agent',
+                description: response.summary || '',
+                htmlUrl: response.prUrl,
+                branchName: response.branchName || '',
+                status: 'open',
+                exceptionGroupId: this.exception?.id || '',
+                repositoryFullName: this.discoveredProject?.repoUrl || '',
+                createdAt: new Date().toISOString()
+              };
+
+              this.cursorConversation.push({
+                id: 'pr-created',
+                type: 'system',
+                text: `✅ Pull Request created: ${response.prUrl}`
+              });
+            }
+
+            if (response.summary) {
+              this.cursorConversation.push({
+                id: 'summary',
+                type: 'assistant_message',
+                text: response.summary
+              });
+            }
+          }
+
+          if (response.status === 'ERROR' || response.status === 'FAILED') {
+            this.stopPolling();
+            this.cursorConversation.push({
+              id: 'error-status',
+              type: 'system',
+              text: `❌ Agent failed: ${response.message || 'Unknown error'}`
+            });
+          }
+
+          this.scrollChatToBottom();
+        }
+      });
+    });
+  }
+
+  private stopPolling(): void {
+    this.pollingSubscription?.unsubscribe();
+    this.pollingSubscription = undefined;
+  }
+
+  private loadCursorConversation(): void {
+    if (!this.cursorAgentId) return;
+
+    this.apiService.getCursorAgentConversation(this.cursorAgentId).subscribe({
+      next: (response) => {
+        if (response.conversation) {
+          this.cursorConversation = [
+            ...this.cursorConversation.filter(m => m.type === 'system'),
+            ...response.conversation
+          ];
+          this.scrollChatToBottom();
+        }
+      }
+    });
+  }
+
+  sendCursorFollowUp(): void {
+    if (!this.chatInput.trim() || !this.cursorAgentId || this.chatLoading) return;
+
+    const message = this.chatInput.trim();
+    this.chatInput = '';
+    this.chatLoading = true;
+
+    this.cursorConversation.push({
+      id: `user-${Date.now()}`,
+      type: 'user_message',
+      text: message
+    });
+    this.scrollChatToBottom();
+
+    this.apiService.sendCursorAgentFollowUp(this.cursorAgentId, message).subscribe({
+      next: () => {
+        this.chatLoading = false;
+        this.cursorAgentStatus = 'RUNNING';
+        this.startPollingAgentStatus();
+      },
+      error: (err) => {
+        this.chatLoading = false;
+        this.cursorConversation.push({
+          id: 'error-followup',
+          type: 'system',
+          text: `Error: ${err.error?.message || 'Failed to send follow-up'}`
+        });
+      }
+    });
+  }
+
+  closeCursorPanel(): void {
+    this.showCursorPanel = false;
+    this.stopPolling();
+  }
+
+  handleCursorChatKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Enter' && !event.shiftKey) {
+      event.preventDefault();
+      this.sendCursorFollowUp();
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.stopPolling();
   }
 }

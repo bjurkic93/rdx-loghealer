@@ -305,6 +305,20 @@ public class CodeFixService {
         }
     }
 
+    private static final Set<String> FRAMEWORK_PACKAGE_PREFIXES = Set.of(
+            "java.", "javax.", "sun.", "jdk.", "com.sun.",
+            "org.springframework.", "org.apache.", "jakarta.",
+            "org.hibernate.", "com.fasterxml.", "io.netty.", "reactor.",
+            "org.slf4j.", "ch.qos.logback.", "org.aspectj.",
+            "com.zaxxer.", "org.postgresql.", "com.mysql.", "oracle.",
+            "io.micrometer.", "org.yaml.", "com.google.", "io.grpc.",
+            "org.junit.", "org.mockito.", "org.assertj."
+    );
+
+    private boolean isFrameworkPackage(String packageName) {
+        return FRAMEWORK_PACKAGE_PREFIXES.stream().anyMatch(packageName::startsWith);
+    }
+
     private List<String> extractAffectedFiles(String stackTrace, String packagePrefix) {
         List<String> files = new ArrayList<>();
         if (stackTrace == null) return files;
@@ -315,13 +329,7 @@ public class CodeFixService {
             String fileName = matcher.group(4);
 
             // Skip common framework packages
-            if (packageName.startsWith("java.") || packageName.startsWith("javax.") ||
-                    packageName.startsWith("sun.") || packageName.startsWith("jdk.") ||
-                    packageName.startsWith("org.springframework.") || 
-                    packageName.startsWith("org.apache.catalina.") ||
-                    packageName.startsWith("org.apache.tomcat.") ||
-                    packageName.startsWith("org.apache.coyote.") ||
-                    packageName.startsWith("jakarta.servlet.")) {
+            if (isFrameworkPackage(packageName)) {
                 continue;
             }
 

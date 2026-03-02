@@ -79,7 +79,10 @@ loghealer:
     exception-index: exception-groups
     default-retention-days: 90
   ai:
-    default-provider: claude
+    default-provider: cursor
+    cursor:
+      api-key: ${CURSOR_API_KEY:}
+      webhook-secret: ${CURSOR_WEBHOOK_SECRET:loghealer-cursor-webhook-secret-32chars}
     claude:
       api-key: ${CLAUDE_API_KEY:}
       model: claude-opus-4-6

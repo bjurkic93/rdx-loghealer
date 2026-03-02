@@ -20,6 +20,7 @@ public class CodeFixResponse {
     private Analysis analysis;
     private List<FileChange> changes;
     private PullRequestInfo pullRequest;
+    private List<ThinkingStep> thinkingSteps;
     
     @Data
     @Builder
@@ -56,5 +57,18 @@ public class CodeFixResponse {
         private String htmlUrl;
         private String branchName;
         private Instant createdAt;
+    }
+    
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ThinkingStep {
+        private String type; // "thinking", "tool_call", "tool_result", "analysis"
+        private String content;
+        private String toolName;
+        private String toolInput;
+        private String toolOutput;
+        private Instant timestamp;
     }
 }

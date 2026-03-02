@@ -14,5 +14,6 @@
     <include file="db/changelog/007-fix-conversation.xml"/>
     <include file="db/changelog/008-project-key.xml"/>
     <include file="db/changelog/009-partial-unique-project-key.xml"/>
+    <include file="db/changelog/010-cursor-agent-task.xml"/>
 
 </databaseChangeLog>

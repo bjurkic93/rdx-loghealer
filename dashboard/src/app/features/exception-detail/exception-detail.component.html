@@ -92,14 +92,24 @@
           </div>
           @if (discoveredProject.repoUrl) {
             <div class="project-actions">
+              <button class="btn btn-cursor" (click)="launchCursorAgent()" [disabled]="aiLoading || prLoading || chatLoading">
+                @if (chatLoading && showCursorPanel) {
+                  <span class="spinner"></span> Launching...
+                } @else {
+                  <svg viewBox="0 0 24 24" fill="currentColor" class="cursor-icon">
+                    <path d="M13.64 21.97C13.14 22.21 12.54 22 12.31 21.5L10.13 16.76L7.62 18.78C7.45 18.92 7.24 19 7.02 19C6.55 19 6.15 18.61 6.15 18.14V4.86C6.15 4.39 6.55 4 7.02 4C7.24 4 7.45 4.08 7.62 4.22L19.78 14.31C20.13 14.59 20.19 15.1 19.91 15.45C19.76 15.64 19.54 15.76 19.29 15.78L14.68 16.18L16.86 20.92C17.09 21.43 16.88 22.03 16.37 22.26L13.64 21.97Z"/>
+                  </svg>
+                  Auto-Fix with Cursor
+                }
+              </button>
               <button class="btn btn-codex" (click)="startCodexFix()" [disabled]="aiLoading || prLoading || chatLoading">
-                @if (chatLoading && !showCodeFixPanel) {
+                @if (chatLoading && showCodeFixPanel) {
                   <span class="spinner"></span> Starting...
                 } @else {
                   <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" class="codex-icon">
                     <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" fill="currentColor"/>
                   </svg>
-                  AI Auto-Fix (Codex-style)
+                  AI Auto-Fix (Claude)
                 }
               </button>
               <button class="btn btn-github" (click)="createPullRequest()" [disabled]="aiLoading || prLoading">
@@ -358,6 +368,100 @@
             </button>
           </div>
         }
+      </div>
+    </div>
+  }
+
+  <!-- Cursor Agent Panel -->
+  @if (showCursorPanel) {
+    <div class="codefix-overlay" (click)="closeCursorPanel()"></div>
+    <div class="codefix-panel cursor-panel">
+      <div class="codefix-header">
+        <h2>
+          <svg viewBox="0 0 24 24" fill="currentColor" class="cursor-icon">
+            <path d="M13.64 21.97C13.14 22.21 12.54 22 12.31 21.5L10.13 16.76L7.62 18.78C7.45 18.92 7.24 19 7.02 19C6.55 19 6.15 18.61 6.15 18.14V4.86C6.15 4.39 6.55 4 7.02 4C7.24 4 7.45 4.08 7.62 4.22L19.78 14.31C20.13 14.59 20.19 15.1 19.91 15.45C19.76 15.64 19.54 15.76 19.29 15.78L14.68 16.18L16.86 20.92C17.09 21.43 16.88 22.03 16.37 22.26L13.64 21.97Z"/>
+          </svg>
+          Cursor Agent
+          @if (cursorAgentStatus) {
+            <span class="status-badge" [ngClass]="cursorAgentStatus.toLowerCase()">{{ cursorAgentStatus }}</span>
+          }
+        </h2>
+        <div class="header-actions">
+          @if (cursorAgentUrl) {
+            <a [href]="cursorAgentUrl" target="_blank" class="btn btn-sm btn-secondary">
+              View in Cursor
+            </a>
+          }
+          <button class="btn-close" (click)="closeCursorPanel()">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="codefix-body">
+        <div class="chat-container" #chatContainer>
+          @for (msg of cursorConversation; track msg.id) {
+            <div class="chat-message" [ngClass]="msg.type">
+              <div class="message-header">
+                @if (msg.type === 'user_message') {
+                  <span class="role-badge user">You</span>
+                } @else if (msg.type === 'assistant_message') {
+                  <span class="role-badge assistant">Cursor</span>
+                } @else {
+                  <span class="role-badge system">System</span>
+                }
+              </div>
+              <div class="message-content">{{ msg.text }}</div>
+            </div>
+          }
+
+          @if (chatLoading) {
+            <div class="chat-message assistant_message loading">
+              <div class="message-header">
+                <span class="role-badge assistant">Cursor</span>
+              </div>
+              <div class="message-content">
+                <span class="spinner"></span> Working...
+              </div>
+            </div>
+          }
+        </div>
+
+        @if (pullRequest) {
+          <div class="pr-created-banner">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <polyline points="22 4 12 14.01 9 11.01" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <div>
+              <strong>Pull Request Created!</strong>
+              <a [href]="pullRequest.htmlUrl" target="_blank">View on GitHub</a>
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="codefix-footer">
+        <div class="chat-input-container">
+          <textarea 
+            [(ngModel)]="chatInput" 
+            placeholder="Send a follow-up instruction to the agent..."
+            (keydown)="handleCursorChatKeydown($event)"
+            [disabled]="chatLoading || cursorAgentStatus === 'FINISHED'"
+            rows="2"
+          ></textarea>
+          <button class="btn btn-primary btn-send" (click)="sendCursorFollowUp()" [disabled]="!chatInput.trim() || chatLoading || !cursorAgentId">
+            @if (chatLoading) {
+              <span class="spinner"></span>
+            } @else {
+              <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            }
+          </button>
+        </div>
       </div>
     </div>
   }

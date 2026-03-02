@@ -297,4 +297,38 @@ export class ApiService {
   createCodeFixPullRequest(conversationId: string, changes: FileChange[]): Observable<CodeFixResponse> {
     return this.http.post<CodeFixResponse>(`${this.baseUrl}/codefix/conversation/${conversationId}/create-pr`, { changes });
   }
+
+  // Cursor Cloud Agent
+  launchCursorAgent(exceptionId: string, projectId: string): Observable<CursorAgentResponse> {
+    return this.http.post<CursorAgentResponse>(`${this.baseUrl}/cursor-agent/launch`, { exceptionId, projectId });
+  }
+
+  getCursorAgentStatus(agentId: string): Observable<CursorAgentResponse> {
+    return this.http.get<CursorAgentResponse>(`${this.baseUrl}/cursor-agent/${agentId}/status`);
+  }
+
+  getCursorAgentConversation(agentId: string): Observable<CursorAgentResponse> {
+    return this.http.get<CursorAgentResponse>(`${this.baseUrl}/cursor-agent/${agentId}/conversation`);
+  }
+
+  sendCursorAgentFollowUp(agentId: string, message: string): Observable<CursorAgentResponse> {
+    return this.http.post<CursorAgentResponse>(`${this.baseUrl}/cursor-agent/${agentId}/followup`, { message });
+  }
+}
+
+export interface CursorAgentResponse {
+  agentId: string;
+  status: string;
+  message?: string;
+  summary?: string;
+  prUrl?: string;
+  agentUrl?: string;
+  branchName?: string;
+  conversation?: CursorConversationMessage[];
+}
+
+export interface CursorConversationMessage {
+  id: string;
+  type: string;
+  text: string;
 }
