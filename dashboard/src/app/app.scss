@@ -1,7 +1,8 @@
 .app-container {
   display: flex;
-  min-height: 100vh;
+  height: 100vh;
   background: #0f1419;
+  overflow: hidden;
   
   &.no-sidebar {
     .main-content {
@@ -16,7 +17,9 @@
   border-right: 1px solid #30363d;
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
   padding: 16px 0;
+  overflow-y: auto;
 }
 
 .logo {
