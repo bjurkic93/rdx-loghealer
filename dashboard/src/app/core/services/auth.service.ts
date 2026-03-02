@@ -31,6 +31,8 @@ export class AuthService {
               next: () => this.fetchUserInfo().subscribe(),
               error: () => this.logout()
             });
+          } else {
+            this.logout();
           }
         }
       });

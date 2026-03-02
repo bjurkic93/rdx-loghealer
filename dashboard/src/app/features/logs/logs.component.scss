@@ -37,11 +37,12 @@
 
   .search-input {
     flex: 1;
-    max-width: 400px;
+    min-width: 300px;
   }
 
   .project-select {
-    min-width: 180px;
+    width: 180px;
+    flex-shrink: 0;
   }
 }
 
@@ -288,6 +289,36 @@
   .page-info {
     font-size: 14px;
     color: #8b949e;
+  }
+
+  .page-input-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+    color: #8b949e;
+  }
+
+  .page-input {
+    width: 60px;
+    padding: 6px 8px;
+    background: #0d1117;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    color: #c9d1d9;
+    font-size: 14px;
+    text-align: center;
+
+    &:focus {
+      outline: none;
+      border-color: #58a6ff;
+    }
+
+    &::-webkit-inner-spin-button,
+    &::-webkit-outer-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
   }
 
   button:disabled {

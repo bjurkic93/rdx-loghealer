@@ -57,7 +57,9 @@ export class LogsComponent implements OnInit {
       projectId: this.selectedProjectId || undefined,
       traceId: this.selectedTraceId || undefined,
       page: this.currentPage,
-      size: this.pageSize
+      size: this.pageSize,
+      sortBy: 'timestamp',
+      sortOrder: 'desc'
     };
 
     this.apiService.searchLogs(request).subscribe({
@@ -114,6 +116,17 @@ export class LogsComponent implements OnInit {
     if (this.currentPage < this.totalPages - 1) {
       this.currentPage++;
       this.loadLogs();
+    }
+  }
+
+  goToPage(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const page = parseInt(input.value, 10);
+    if (page >= 1 && page <= this.totalPages) {
+      this.currentPage = page - 1;
+      this.loadLogs();
+    } else {
+      input.value = (this.currentPage + 1).toString();
     }
   }
 
