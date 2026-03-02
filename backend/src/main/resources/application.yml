@@ -93,7 +93,7 @@ loghealer:
     sendgrid-apikey: ${SENDGRID_API_KEY:}
     from: ${FROM_EMAIL:no-reply@reddia-x.com}
   monitoring:
-    enabled: ${MONITORING_ENABLED:false}
+    enabled: ${MONITORING_ENABLED:true}
     default-check-interval-seconds: 30
     email:
       enabled: ${MONITORING_EMAIL_ENABLED:false}
