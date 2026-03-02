@@ -461,21 +461,7 @@ public class CodeFixService {
                                         int maxIterations) {
         for (int i = 0; i < maxIterations; i++) {
             try {
-                Map<String, Object> requestBody = new HashMap<>();
-                requestBody.put("model", claudeModel);
-                requestBody.put("max_tokens", 4096);
-                requestBody.put("messages", messages);
-                requestBody.put("tools", tools);
-
-                String response = claudeWebClient.post()
-                        .uri("/messages")
-                        .header("x-api-key", claudeApiKey)
-                        .header("anthropic-version", "2023-06-01")
-                        .bodyValue(requestBody)
-                        .retrieve()
-                        .bodyToMono(String.class)
-                        .timeout(Duration.ofSeconds(120))
-                        .block();
+                String response = callClaudeApiWithRetry(messages, tools);
 
                 JsonNode responseNode = objectMapper.readTree(response);
                 String stopReason = responseNode.path("stop_reason").asText();
@@ -532,6 +518,45 @@ public class CodeFixService {
         }
 
         return "Analysis incomplete - reached maximum tool iterations. Please try again with a more specific request.";
+    }
+
+    private String callClaudeApiWithRetry(List<Map<String, Object>> messages, List<Map<String, Object>> tools) {
+        int maxRetries = 3;
+        long baseDelayMs = 2000;
+
+        for (int retry = 0; retry <= maxRetries; retry++) {
+            try {
+                Map<String, Object> requestBody = new HashMap<>();
+                requestBody.put("model", claudeModel);
+                requestBody.put("max_tokens", 4096);
+                requestBody.put("messages", messages);
+                requestBody.put("tools", tools);
+
+                return claudeWebClient.post()
+                        .uri("/messages")
+                        .header("x-api-key", claudeApiKey)
+                        .header("anthropic-version", "2023-06-01")
+                        .bodyValue(requestBody)
+                        .retrieve()
+                        .bodyToMono(String.class)
+                        .timeout(Duration.ofSeconds(120))
+                        .block();
+
+            } catch (org.springframework.web.reactive.function.client.WebClientResponseException.TooManyRequests e) {
+                if (retry == maxRetries) {
+                    throw e;
+                }
+                long delayMs = baseDelayMs * (long) Math.pow(2, retry);
+                log.warn("Rate limited (429), retrying in {}ms (attempt {}/{})", delayMs, retry + 1, maxRetries);
+                try {
+                    Thread.sleep(delayMs);
+                } catch (InterruptedException ie) {
+                    Thread.currentThread().interrupt();
+                    throw new RuntimeException("Interrupted during rate limit backoff", ie);
+                }
+            }
+        }
+        throw new RuntimeException("Max retries exceeded for Claude API");
     }
 
     private String executeToolCall(String toolName, JsonNode input, Map<String, String> loadedFiles,
