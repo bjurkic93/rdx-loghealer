@@ -16,46 +16,66 @@ export class AuthService {
   private authReadySubject = new ReplaySubject<boolean>(1);
   public authReady$ = this.authReadySubject.asObservable();
 
+  private initialized = false;
+
   constructor(
     private http: HttpClient,
     private router: Router
   ) {
-    this.loadStoredUser();
+    // Initialization is done via APP_INITIALIZER to avoid circular dependency
   }
 
-  private loadStoredUser(): void {
+  /**
+   * Initialize auth state - called by APP_INITIALIZER before app renders.
+   * Returns a Promise that resolves when auth state is determined.
+   */
+  initialize(): Promise<void> {
+    if (this.initialized) {
+      return Promise.resolve();
+    }
+    this.initialized = true;
+    
+    return new Promise<void>((resolve) => {
+      this.loadStoredUser(resolve);
+    });
+  }
+
+  private loadStoredUser(onComplete?: () => void): void {
+    const complete = (isAuthenticated: boolean) => {
+      this.authReadySubject.next(isAuthenticated);
+      onComplete?.();
+    };
+
     const token = localStorage.getItem('access_token');
     if (token) {
       this.fetchUserInfo().subscribe({
-        next: () => {
-          this.authReadySubject.next(true);
-        },
+        next: () => complete(true),
         error: () => {
           const refreshToken = localStorage.getItem('refresh_token');
           if (refreshToken) {
             this.refreshToken().subscribe({
               next: () => {
                 this.fetchUserInfo().subscribe({
-                  next: () => this.authReadySubject.next(true),
+                  next: () => complete(true),
                   error: () => {
                     this.clearTokens();
-                    this.authReadySubject.next(false);
+                    complete(false);
                   }
                 });
               },
               error: () => {
                 this.clearTokens();
-                this.authReadySubject.next(false);
+                complete(false);
               }
             });
           } else {
             this.clearTokens();
-            this.authReadySubject.next(false);
+            complete(false);
           }
         }
       });
     } else {
-      this.authReadySubject.next(false);
+      complete(false);
     }
   }
   
