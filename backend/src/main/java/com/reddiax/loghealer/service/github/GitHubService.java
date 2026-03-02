@@ -444,4 +444,60 @@ public class GitHubService {
                 .orElseThrow(() -> new RuntimeException("No active GitHub connection found"));
         return createPullRequest(connection.getAccessToken(), repoFullName, headBranch, baseBranch, title, body);
     }
+
+    /**
+     * List contents of a directory in a repository.
+     * Returns list of file/folder names with type indicators.
+     */
+    public List<String> listDirectoryContents(String repoFullName, String directoryPath, String branch) {
+        GitHubConnection connection = getAnyActiveConnection()
+                .orElseThrow(() -> new RuntimeException("No active GitHub connection found"));
+
+        try {
+            String uri = "/repos/" + repoFullName + "/contents/" + directoryPath;
+            if (branch != null && !branch.isEmpty()) {
+                uri += "?ref=" + branch;
+            }
+
+            String response = githubWebClient.get()
+                    .uri(uri)
+                    .header("Authorization", "Bearer " + connection.getAccessToken())
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .timeout(Duration.ofSeconds(30))
+                    .block();
+
+            JsonNode contents = objectMapper.readTree(response);
+            List<String> result = new ArrayList<>();
+
+            if (contents.isArray()) {
+                for (JsonNode item : contents) {
+                    String name = item.path("name").asText();
+                    String type = item.path("type").asText();
+                    String path = item.path("path").asText();
+                    
+                    // Add type indicator: [dir] for directories, [file] for files
+                    if ("dir".equals(type)) {
+                        result.add("[dir] " + path);
+                    } else {
+                        result.add("[file] " + path);
+                    }
+                }
+            }
+
+            // Sort: directories first, then files
+            result.sort((a, b) -> {
+                boolean aIsDir = a.startsWith("[dir]");
+                boolean bIsDir = b.startsWith("[dir]");
+                if (aIsDir && !bIsDir) return -1;
+                if (!aIsDir && bIsDir) return 1;
+                return a.compareTo(b);
+            });
+
+            return result;
+        } catch (Exception e) {
+            log.warn("Failed to list directory {} from {}/{}: {}", directoryPath, repoFullName, branch, e.getMessage());
+            return Collections.emptyList();
+        }
+    }
 }

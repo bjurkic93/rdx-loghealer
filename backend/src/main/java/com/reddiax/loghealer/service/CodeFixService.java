@@ -122,12 +122,9 @@ public class CodeFixService {
             }
         }
 
+        // If no source files found, still proceed with analysis based on exception info only
         if (sourceFiles.isEmpty()) {
-            return CodeFixResponse.builder()
-                    .conversationId(conversation.getId().toString())
-                    .status("ERROR")
-                    .message("Could not fetch any source files from repository. Check package prefix configuration.")
-                    .build();
+            log.info("No source files found in stack trace, proceeding with exception-only analysis");
         }
 
         String userMessage = request.getUserMessage();
@@ -140,7 +137,7 @@ public class CodeFixService {
                 .content(userMessage)
                 .build());
 
-        String aiResponse = callClaudeForFix(exception, sourceFiles, conversation.getMessages(), userMessage);
+        String aiResponse = callClaudeForFix(exception, sourceFiles, conversation.getMessages(), userMessage, repoFullName, defaultBranch);
         
         conversation.addMessage(FixConversationMessage.builder()
                 .role(FixConversationMessage.MessageRole.ASSISTANT)
@@ -180,11 +177,12 @@ public class CodeFixService {
 
         List<String> affectedFiles = extractAffectedFiles(exceptionOpt.get().getSampleStackTrace(), project.getPackagePrefix());
         Map<String, String> sourceFiles = new HashMap<>();
+        String repoFullName = conversation.getRepositoryFullName();
         String defaultBranch = project.getDefaultBranch() != null ? project.getDefaultBranch() : "main";
 
         for (String filePath : affectedFiles) {
             try {
-                String content = gitHubService.getFileContent(conversation.getRepositoryFullName(), filePath, defaultBranch);
+                String content = gitHubService.getFileContent(repoFullName, filePath, defaultBranch);
                 if (content != null) {
                     sourceFiles.put(filePath, content);
                 }
@@ -198,7 +196,7 @@ public class CodeFixService {
                 .content(userMessage)
                 .build());
 
-        String aiResponse = callClaudeForFix(exceptionOpt.get(), sourceFiles, conversation.getMessages(), userMessage);
+        String aiResponse = callClaudeForFix(exceptionOpt.get(), sourceFiles, conversation.getMessages(), userMessage, repoFullName, defaultBranch);
 
         conversation.addMessage(FixConversationMessage.builder()
                 .role(FixConversationMessage.MessageRole.ASSISTANT)
@@ -316,12 +314,19 @@ public class CodeFixService {
             String packageName = matcher.group(1);
             String fileName = matcher.group(4);
 
-            if (packagePrefix != null && !packageName.startsWith(packagePrefix)) {
+            // Skip common framework packages
+            if (packageName.startsWith("java.") || packageName.startsWith("javax.") ||
+                    packageName.startsWith("sun.") || packageName.startsWith("jdk.") ||
+                    packageName.startsWith("org.springframework.") || 
+                    packageName.startsWith("org.apache.catalina.") ||
+                    packageName.startsWith("org.apache.tomcat.") ||
+                    packageName.startsWith("org.apache.coyote.") ||
+                    packageName.startsWith("jakarta.servlet.")) {
                 continue;
             }
 
-            if (packageName.startsWith("java.") || packageName.startsWith("javax.") ||
-                    packageName.startsWith("org.springframework.") || packageName.startsWith("org.apache.")) {
+            // If packagePrefix is set, filter by it; otherwise accept all non-framework packages
+            if (packagePrefix != null && !packagePrefix.isEmpty() && !packageName.startsWith(packagePrefix)) {
                 continue;
             }
 
@@ -343,9 +348,11 @@ public class CodeFixService {
     }
 
     private String callClaudeForFix(Object exception, Map<String, String> sourceFiles, 
-                                     List<FixConversationMessage> history, String userMessage) {
+                                     List<FixConversationMessage> history, String userMessage,
+                                     String repoFullName, String defaultBranch) {
+        // Build initial prompt with exception info
         StringBuilder prompt = new StringBuilder();
-        prompt.append("You are a code fixing assistant. Analyze the following exception and source code, then provide a fix.\n\n");
+        prompt.append("You are a code fixing assistant. Analyze the following exception and fix it.\n\n");
 
         prompt.append("## Exception Details\n");
         try {
@@ -355,15 +362,22 @@ public class CodeFixService {
         }
         prompt.append("\n\n");
 
-        prompt.append("## Source Files\n");
-        for (Map.Entry<String, String> entry : sourceFiles.entrySet()) {
-            prompt.append("### ").append(entry.getKey()).append("\n```java\n");
-            prompt.append(entry.getValue());
-            prompt.append("\n```\n\n");
+        // Add any source files we already have
+        if (!sourceFiles.isEmpty()) {
+            prompt.append("## Source Files Already Loaded\n");
+            for (Map.Entry<String, String> entry : sourceFiles.entrySet()) {
+                prompt.append("### ").append(entry.getKey()).append("\n```java\n");
+                prompt.append(entry.getValue());
+                prompt.append("\n```\n\n");
+            }
         }
 
         prompt.append("## Instructions\n");
-        prompt.append("Provide your response in the following JSON format:\n");
+        prompt.append("You have access to tools to read files from the repository.\n");
+        prompt.append("1. Use 'list_files' to discover what files exist in the project\n");
+        prompt.append("2. Use 'read_file' to fetch relevant source files (controllers, services, etc.)\n");
+        prompt.append("3. Then analyze the exception and provide a fix\n\n");
+        prompt.append("When you have enough information, provide your response in this JSON format:\n");
         prompt.append("```json\n");
         prompt.append("{\n");
         prompt.append("  \"analysis\": {\n");
@@ -386,42 +400,187 @@ public class CodeFixService {
         prompt.append("```\n\n");
         prompt.append("User request: ").append(userMessage);
 
-        List<Map<String, String>> messages = new ArrayList<>();
-        
+        // Build message history
+        List<Map<String, Object>> messages = new ArrayList<>();
         for (FixConversationMessage msg : history) {
             if (msg.getRole() == FixConversationMessage.MessageRole.USER) {
-                messages.add(Map.of("role", "user", "content", msg.getContent()));
+                messages.add(new HashMap<>(Map.of("role", "user", "content", msg.getContent())));
             } else if (msg.getRole() == FixConversationMessage.MessageRole.ASSISTANT) {
-                messages.add(Map.of("role", "assistant", "content", msg.getContent()));
+                messages.add(new HashMap<>(Map.of("role", "assistant", "content", msg.getContent())));
             }
         }
 
         if (messages.isEmpty() || !messages.get(messages.size() - 1).get("content").equals(userMessage)) {
-            messages.add(Map.of("role", "user", "content", prompt.toString()));
+            messages.add(new HashMap<>(Map.of("role", "user", "content", prompt.toString())));
         } else {
-            messages.set(messages.size() - 1, Map.of("role", "user", "content", prompt.toString()));
+            messages.set(messages.size() - 1, new HashMap<>(Map.of("role", "user", "content", prompt.toString())));
         }
 
-        try {
-            String response = claudeWebClient.post()
-                    .uri("/v1/messages")
-                    .header("x-api-key", claudeApiKey)
-                    .header("anthropic-version", "2023-06-01")
-                    .bodyValue(Map.of(
-                            "model", claudeModel,
-                            "max_tokens", 4096,
-                            "messages", messages
-                    ))
-                    .retrieve()
-                    .bodyToMono(String.class)
-                    .timeout(Duration.ofSeconds(120))
-                    .block();
+        // Define tools for Claude
+        List<Map<String, Object>> tools = buildTools();
 
-            JsonNode responseNode = objectMapper.readTree(response);
-            return responseNode.path("content").get(0).path("text").asText();
+        return callClaudeWithTools(messages, tools, sourceFiles, repoFullName, defaultBranch, 5);
+    }
+
+    private List<Map<String, Object>> buildTools() {
+        Map<String, Object> readFileTool = new HashMap<>();
+        readFileTool.put("name", "read_file");
+        readFileTool.put("description", "Read a source file from the repository. Use this to fetch code files needed to analyze and fix the exception. Common paths: src/main/java/com/package/ClassName.java");
+        
+        Map<String, Object> readFileSchema = new HashMap<>();
+        readFileSchema.put("type", "object");
+        readFileSchema.put("properties", Map.of(
+            "file_path", Map.of(
+                "type", "string",
+                "description", "The path to the file in the repository (e.g., src/main/java/com/example/MyController.java)"
+            )
+        ));
+        readFileSchema.put("required", List.of("file_path"));
+        readFileTool.put("input_schema", readFileSchema);
+
+        Map<String, Object> listFilesTool = new HashMap<>();
+        listFilesTool.put("name", "list_files");
+        listFilesTool.put("description", "List files in a directory of the repository. Use this to discover what files exist. Start with 'src/main/java' to see the package structure.");
+        
+        Map<String, Object> listFilesSchema = new HashMap<>();
+        listFilesSchema.put("type", "object");
+        listFilesSchema.put("properties", Map.of(
+            "directory_path", Map.of(
+                "type", "string",
+                "description", "The directory path to list (e.g., src/main/java or src/main/java/com/example)"
+            )
+        ));
+        listFilesSchema.put("required", List.of("directory_path"));
+        listFilesTool.put("input_schema", listFilesSchema);
+
+        return List.of(readFileTool, listFilesTool);
+    }
+
+    private String callClaudeWithTools(List<Map<String, Object>> messages, List<Map<String, Object>> tools,
+                                        Map<String, String> loadedFiles, String repoFullName, String defaultBranch,
+                                        int maxIterations) {
+        for (int i = 0; i < maxIterations; i++) {
+            try {
+                Map<String, Object> requestBody = new HashMap<>();
+                requestBody.put("model", claudeModel);
+                requestBody.put("max_tokens", 4096);
+                requestBody.put("messages", messages);
+                requestBody.put("tools", tools);
+
+                String response = claudeWebClient.post()
+                        .uri("/v1/messages")
+                        .header("x-api-key", claudeApiKey)
+                        .header("anthropic-version", "2023-06-01")
+                        .bodyValue(requestBody)
+                        .retrieve()
+                        .bodyToMono(String.class)
+                        .timeout(Duration.ofSeconds(120))
+                        .block();
+
+                JsonNode responseNode = objectMapper.readTree(response);
+                String stopReason = responseNode.path("stop_reason").asText();
+                JsonNode contentArray = responseNode.path("content");
+
+                // Check if Claude wants to use a tool
+                if ("tool_use".equals(stopReason)) {
+                    // Process tool calls
+                    List<Map<String, Object>> toolResults = new ArrayList<>();
+
+                    for (JsonNode contentItem : contentArray) {
+                        String type = contentItem.path("type").asText();
+                        
+                        if ("tool_use".equals(type)) {
+                            String toolName = contentItem.path("name").asText();
+                            String toolUseId = contentItem.path("id").asText();
+                            JsonNode input = contentItem.path("input");
+
+                            String toolResult = executeToolCall(toolName, input, loadedFiles, repoFullName, defaultBranch);
+                            toolResults.add(Map.of(
+                                "type", "tool_result",
+                                "tool_use_id", toolUseId,
+                                "content", toolResult
+                            ));
+                        }
+                    }
+
+                    // Add assistant's response with tool use
+                    List<Object> assistantContentList = new ArrayList<>();
+                    for (JsonNode contentItem : contentArray) {
+                        assistantContentList.add(objectMapper.convertValue(contentItem, Map.class));
+                    }
+                    messages.add(Map.of("role", "assistant", "content", assistantContentList));
+
+                    // Add tool results
+                    messages.add(Map.of("role", "user", "content", toolResults));
+
+                    log.info("Tool iteration {}: {} tool calls processed", i + 1, toolResults.size());
+
+                } else {
+                    // Claude finished - return the text response
+                    for (JsonNode contentItem : contentArray) {
+                        if ("text".equals(contentItem.path("type").asText())) {
+                            return contentItem.path("text").asText();
+                        }
+                    }
+                    return "No response text found";
+                }
+
+            } catch (Exception e) {
+                log.error("Claude API call failed at iteration {}", i, e);
+                throw new RuntimeException("AI analysis failed: " + e.getMessage());
+            }
+        }
+
+        return "Analysis incomplete - reached maximum tool iterations. Please try again with a more specific request.";
+    }
+
+    private String executeToolCall(String toolName, JsonNode input, Map<String, String> loadedFiles,
+                                    String repoFullName, String defaultBranch) {
+        try {
+            switch (toolName) {
+                case "read_file":
+                    String filePath = input.path("file_path").asText();
+                    log.info("Tool call: read_file({}) from repo {}", filePath, repoFullName);
+                    
+                    // Check if already loaded
+                    if (loadedFiles.containsKey(filePath)) {
+                        return loadedFiles.get(filePath);
+                    }
+                    
+                    // Fetch from GitHub
+                    try {
+                        String content = gitHubService.getFileContent(repoFullName, filePath, defaultBranch);
+                        if (content != null) {
+                            loadedFiles.put(filePath, content);
+                            return content;
+                        }
+                        return "File not found: " + filePath;
+                    } catch (Exception e) {
+                        log.warn("Could not fetch file {}: {}", filePath, e.getMessage());
+                        return "Error reading file: " + e.getMessage();
+                    }
+                    
+                case "list_files":
+                    String dirPath = input.path("directory_path").asText();
+                    log.info("Tool call: list_files({}) from repo {}", dirPath, repoFullName);
+                    
+                    try {
+                        List<String> files = gitHubService.listDirectoryContents(repoFullName, dirPath, defaultBranch);
+                        if (files.isEmpty()) {
+                            return "Directory is empty or does not exist: " + dirPath;
+                        }
+                        return String.join("\n", files);
+                    } catch (Exception e) {
+                        log.warn("Could not list directory {}: {}", dirPath, e.getMessage());
+                        return "Error listing directory: " + e.getMessage();
+                    }
+                    
+                default:
+                    return "Unknown tool: " + toolName;
+            }
         } catch (Exception e) {
-            log.error("Claude API call failed", e);
-            throw new RuntimeException("AI analysis failed: " + e.getMessage());
+            log.error("Tool execution failed: {}", toolName, e);
+            return "Error executing tool: " + e.getMessage();
         }
     }
 
