@@ -90,9 +90,27 @@ public class LogHealerAppender extends AppenderBase<ILoggingEvent> {
             logEntry.put("environment", environment);
             logEntry.put("serviceName", serviceName != null ? serviceName : projectId);
 
-            // MDC context
+            // MDC context - extract traceId, spanId if present
             if (event.getMDCPropertyMap() != null && !event.getMDCPropertyMap().isEmpty()) {
-                logEntry.put("context", new HashMap<>(event.getMDCPropertyMap()));
+                Map<String, String> mdc = event.getMDCPropertyMap();
+                logEntry.put("context", new HashMap<>(mdc));
+                
+                // Extract traceId from common MDC keys (Micrometer Tracing, Sleuth, OpenTelemetry)
+                String traceId = mdc.get("traceId");
+                if (traceId == null) traceId = mdc.get("trace_id");
+                if (traceId == null) traceId = mdc.get("X-B3-TraceId");
+                if (traceId == null) traceId = mdc.get("traceparent");
+                if (traceId != null && !traceId.isEmpty()) {
+                    logEntry.put("traceId", traceId);
+                }
+                
+                // Extract spanId
+                String spanId = mdc.get("spanId");
+                if (spanId == null) spanId = mdc.get("span_id");
+                if (spanId == null) spanId = mdc.get("X-B3-SpanId");
+                if (spanId != null && !spanId.isEmpty()) {
+                    logEntry.put("spanId", spanId);
+                }
             }
 
             // Exception handling
