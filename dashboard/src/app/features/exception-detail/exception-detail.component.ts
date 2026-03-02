@@ -444,28 +444,30 @@ export class ExceptionDetailComponent implements OnInit, OnDestroy {
   private startPollingAgentStatus(): void {
     if (!this.cursorAgentId) return;
 
-    this.pollingSubscription = interval(5000).subscribe(() => {
+    this.pollingSubscription = interval(3000).subscribe(() => {
       if (!this.cursorAgentId) {
         this.stopPolling();
         return;
       }
+
+      // Load conversation first to show live progress
+      this.loadCursorConversation();
 
       this.apiService.getCursorAgentStatus(this.cursorAgentId).subscribe({
         next: (response) => {
           const prevStatus = this.cursorAgentStatus;
           this.cursorAgentStatus = response.status;
 
-          if (response.status !== prevStatus) {
+          if (response.status !== prevStatus && response.status !== 'RUNNING') {
             this.cursorConversation.push({
               id: `status-${Date.now()}`,
               type: 'system',
-              text: `Status: ${response.status}`
+              text: `Status changed: ${response.status}`
             });
           }
 
-          if (response.status === 'FINISHED') {
+          if (response.status === 'FINISHED' || response.status === 'completed') {
             this.stopPolling();
-            this.loadCursorConversation();
             
             if (response.prUrl) {
               this.pullRequest = {
@@ -497,7 +499,7 @@ export class ExceptionDetailComponent implements OnInit, OnDestroy {
             }
           }
 
-          if (response.status === 'ERROR' || response.status === 'FAILED') {
+          if (response.status === 'ERROR' || response.status === 'FAILED' || response.status === 'error') {
             this.stopPolling();
             this.cursorConversation.push({
               id: 'error-status',
@@ -522,12 +524,17 @@ export class ExceptionDetailComponent implements OnInit, OnDestroy {
 
     this.apiService.getCursorAgentConversation(this.cursorAgentId).subscribe({
       next: (response) => {
-        if (response.conversation) {
-          this.cursorConversation = [
-            ...this.cursorConversation.filter(m => m.type === 'system'),
-            ...response.conversation
-          ];
-          this.scrollChatToBottom();
+        if (response.conversation && response.conversation.length > 0) {
+          const existingIds = new Set(this.cursorConversation.map(m => m.id));
+          const newMessages = response.conversation.filter(m => !existingIds.has(m.id));
+          
+          if (newMessages.length > 0) {
+            this.cursorConversation = [
+              ...this.cursorConversation,
+              ...newMessages
+            ];
+            this.scrollChatToBottom();
+          }
         }
       }
     });

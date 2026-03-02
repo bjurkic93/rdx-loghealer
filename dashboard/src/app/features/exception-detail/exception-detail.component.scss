@@ -812,6 +812,13 @@
   text-transform: uppercase;
   padding: 3px 8px;
   border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+
+  svg {
+    flex-shrink: 0;
+  }
 
   &.user {
     background: #21262d;
@@ -827,6 +834,21 @@
     background: rgba(88, 166, 255, 0.2);
     color: #58a6ff;
   }
+
+  &.tool {
+    background: rgba(255, 166, 87, 0.2);
+    color: #ffa657;
+  }
+
+  &.tool-result {
+    background: rgba(63, 185, 80, 0.2);
+    color: #3fb950;
+  }
+
+  &.thinking {
+    background: rgba(163, 113, 247, 0.2);
+    color: #a371f7;
+  }
 }
 
 .timestamp {
@@ -840,6 +862,45 @@
   line-height: 1.6;
   white-space: pre-wrap;
   word-break: break-word;
+
+  &.code-content {
+    background: #0d1117;
+    border: 1px solid #21262d;
+    border-radius: 6px;
+    padding: 12px;
+    margin-top: 4px;
+
+    pre {
+      margin: 0;
+      font-family: 'Fira Code', 'Consolas', monospace;
+      font-size: 12px;
+      color: #8b949e;
+      overflow-x: auto;
+      max-height: 200px;
+    }
+  }
+}
+
+.chat-message {
+  &.tool_call, &.tool_result, &.thinking {
+    background: rgba(22, 27, 34, 0.5);
+    border-left: 3px solid;
+    margin-left: 16px;
+    padding: 8px 12px;
+    border-radius: 0 8px 8px 0;
+  }
+
+  &.tool_call {
+    border-left-color: #ffa657;
+  }
+
+  &.tool_result {
+    border-left-color: #3fb950;
+  }
+
+  &.thinking {
+    border-left-color: #a371f7;
+  }
 }
 
 // Changes Preview

@@ -191,16 +191,43 @@ public class CursorAgentService {
                     .timeout(Duration.ofSeconds(15))
                     .block();
 
+            log.debug("Cursor conversation response: {}", response);
+
             JsonNode responseNode = objectMapper.readTree(response);
             JsonNode messagesNode = responseNode.path("messages");
+            if (messagesNode.isMissingNode()) {
+                messagesNode = responseNode.path("conversation");
+            }
 
             List<CursorAgentResponse.ConversationMessage> messages = new ArrayList<>();
             for (JsonNode msg : messagesNode) {
-                messages.add(CursorAgentResponse.ConversationMessage.builder()
-                        .id(msg.path("id").asText())
-                        .type(msg.path("type").asText())
-                        .text(msg.path("text").asText())
-                        .build());
+                String type = msg.path("type").asText();
+                String text = msg.path("text").asText();
+                String id = msg.path("id").asText();
+                
+                // Handle different message formats
+                if (text.isEmpty()) {
+                    text = msg.path("content").asText();
+                }
+                if (text.isEmpty() && msg.has("tool_calls")) {
+                    type = "tool_call";
+                    text = formatToolCalls(msg.path("tool_calls"));
+                }
+                if (text.isEmpty() && msg.has("tool_result")) {
+                    type = "tool_result";
+                    text = msg.path("tool_result").asText();
+                }
+                if (id.isEmpty()) {
+                    id = "msg-" + messages.size();
+                }
+
+                if (!text.isEmpty()) {
+                    messages.add(CursorAgentResponse.ConversationMessage.builder()
+                            .id(id)
+                            .type(type)
+                            .text(text)
+                            .build());
+                }
             }
 
             return CursorAgentResponse.builder()
@@ -217,6 +244,25 @@ public class CursorAgentService {
                     .message("Failed to get conversation: " + e.getMessage())
                     .build();
         }
+    }
+
+    private String formatToolCalls(JsonNode toolCalls) {
+        StringBuilder sb = new StringBuilder();
+        for (JsonNode call : toolCalls) {
+            String name = call.path("name").asText(call.path("function").path("name").asText());
+            String args = call.path("arguments").asText(call.path("function").path("arguments").toString());
+            if (!name.isEmpty()) {
+                sb.append(name).append("(").append(truncate(args, 200)).append(")\n");
+            }
+        }
+        return sb.toString().trim();
+    }
+
+    private String truncate(String text, int maxLen) {
+        if (text == null) return "";
+        if (text.length() <= maxLen) return text;
+        return text.substring(0, maxLen) + "...";
+    }
     }
 
     public CursorAgentResponse sendFollowUp(String agentId, String message) {

@@ -409,11 +409,40 @@
                   <span class="role-badge user">You</span>
                 } @else if (msg.type === 'assistant_message') {
                   <span class="role-badge assistant">Cursor</span>
+                } @else if (msg.type === 'tool_call') {
+                  <span class="role-badge tool">
+                    <svg viewBox="0 0 24 24" fill="none" width="12" height="12">
+                      <path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    Tool Call
+                  </span>
+                } @else if (msg.type === 'tool_result') {
+                  <span class="role-badge tool-result">
+                    <svg viewBox="0 0 24 24" fill="none" width="12" height="12">
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" stroke="currentColor" stroke-width="2"/>
+                      <polyline points="22 4 12 14.01 9 11.01" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    Result
+                  </span>
+                } @else if (msg.type === 'thinking') {
+                  <span class="role-badge thinking">
+                    <svg viewBox="0 0 24 24" fill="none" width="12" height="12">
+                      <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                      <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2"/>
+                    </svg>
+                    Thinking
+                  </span>
                 } @else {
                   <span class="role-badge system">System</span>
                 }
               </div>
-              <div class="message-content">{{ msg.text }}</div>
+              <div class="message-content" [class.code-content]="msg.type === 'tool_call' || msg.type === 'tool_result'">
+                @if (msg.type === 'tool_call' || msg.type === 'tool_result') {
+                  <pre>{{ msg.text }}</pre>
+                } @else {
+                  {{ msg.text }}
+                }
+              </div>
             </div>
           }
 
