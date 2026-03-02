@@ -88,38 +88,19 @@ export class ExceptionDetailComponent implements OnInit {
   }
 
   discoverProject(exception: ExceptionGroup): void {
+    if (!exception.projectId) {
+      this.discoveringProject = false;
+      return;
+    }
+
     this.discoveringProject = true;
     
-    // First try to find project by exception's projectId (which matches project.projectKey)
-    if (exception.projectId) {
-      this.apiService.getProjectByKey(exception.projectId).subscribe({
-        next: (project) => {
-          this.discoveredProject = project;
-          this.discoveringProject = false;
-        },
-        error: () => {
-          // Project not found by key, fallback to package discovery
-          this.discoverProjectByPackage(exception);
-        }
-      });
-    } else {
-      this.discoverProjectByPackage(exception);
-    }
-  }
-
-  private discoverProjectByPackage(exception: ExceptionGroup): void {
-    const logger = exception.exceptionClass;
-    const stackTrace = exception.sampleStackTrace;
-    
-    this.apiService.discoverProjectFromLog({ logger, stackTrace }).subscribe({
-      next: (response) => {
-        if (response.found && response.project) {
-          this.discoveredProject = response.project;
-        }
+    this.apiService.getProject(exception.projectId).subscribe({
+      next: (project) => {
+        this.discoveredProject = project;
         this.discoveringProject = false;
       },
-      error: (err) => {
-        console.error('Failed to discover project:', err);
+      error: () => {
         this.discoveringProject = false;
       }
     });
