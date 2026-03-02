@@ -377,6 +377,10 @@ public class CodeFixService {
         prompt.append("1. Use 'list_files' to discover what files exist in the project\n");
         prompt.append("2. Use 'read_file' to fetch relevant source files (controllers, services, etc.)\n");
         prompt.append("3. Then analyze the exception and provide a fix\n\n");
+        prompt.append("IMPORTANT: Only read files from THIS repository. Do NOT attempt to read external library/framework files.\n");
+        prompt.append("Ignore stack trace frames from packages like: org.apache, org.springframework, jakarta, javax, java., ");
+        prompt.append("org.hibernate, com.fasterxml, io.netty, reactor, org.coyote, etc.\n");
+        prompt.append("Focus ONLY on classes in the application's own package (usually com.reddiax, com.example, or similar).\n\n");
         prompt.append("When you have enough information, provide your response in this JSON format:\n");
         prompt.append("```json\n");
         prompt.append("{\n");
@@ -425,7 +429,7 @@ public class CodeFixService {
     private List<Map<String, Object>> buildTools() {
         Map<String, Object> readFileTool = new HashMap<>();
         readFileTool.put("name", "read_file");
-        readFileTool.put("description", "Read a source file from the repository. Use this to fetch code files needed to analyze and fix the exception. Common paths: src/main/java/com/package/ClassName.java");
+        readFileTool.put("description", "Read a source file from THIS repository only. Use for application code files (controllers, services, etc). Path format: src/main/java/com/package/ClassName.java. Do NOT use for external libraries like Spring, Apache, Jakarta - those are not in this repo.");
         
         Map<String, Object> readFileSchema = new HashMap<>();
         readFileSchema.put("type", "object");
