@@ -1,8 +1,8 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
-import { tap, catchError, map } from 'rxjs/operators';
+import { BehaviorSubject, Observable, of, throwError, ReplaySubject } from 'rxjs';
+import { tap, catchError, map, first } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { User, TokenResponse, isSuperAdmin } from '../models';
 
@@ -12,6 +12,9 @@ import { User, TokenResponse, isSuperAdmin } from '../models';
 export class AuthService {
   private currentUserSubject = new BehaviorSubject<User | null>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
+  
+  private authReadySubject = new ReplaySubject<boolean>(1);
+  public authReady$ = this.authReadySubject.asObservable();
 
   constructor(
     private http: HttpClient,
@@ -24,23 +27,46 @@ export class AuthService {
     const token = localStorage.getItem('access_token');
     if (token) {
       this.fetchUserInfo().subscribe({
+        next: () => {
+          this.authReadySubject.next(true);
+        },
         error: () => {
           const refreshToken = localStorage.getItem('refresh_token');
           if (refreshToken) {
             this.refreshToken().subscribe({
-              next: () => this.fetchUserInfo().subscribe(),
-              error: () => this.logout()
+              next: () => {
+                this.fetchUserInfo().subscribe({
+                  next: () => this.authReadySubject.next(true),
+                  error: () => {
+                    this.clearTokens();
+                    this.authReadySubject.next(false);
+                  }
+                });
+              },
+              error: () => {
+                this.clearTokens();
+                this.authReadySubject.next(false);
+              }
             });
           } else {
-            this.logout();
+            this.clearTokens();
+            this.authReadySubject.next(false);
           }
         }
       });
+    } else {
+      this.authReadySubject.next(false);
     }
+  }
+  
+  private clearTokens(): void {
+    localStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token');
+    this.currentUserSubject.next(null);
   }
 
   get isAuthenticated(): boolean {
-    return !!localStorage.getItem('access_token');
+    return !!localStorage.getItem('access_token') && this.currentUserSubject.value !== null;
   }
 
   get currentUser(): User | null {
