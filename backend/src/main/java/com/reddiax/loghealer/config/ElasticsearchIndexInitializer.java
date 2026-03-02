@@ -15,6 +15,7 @@ import org.springframework.data.elasticsearch.core.IndexOperations;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
 @Component
@@ -39,33 +40,32 @@ public class ElasticsearchIndexInitializer {
                 .value();
             
             if (!exists) {
+                Map<String, Property> properties = new HashMap<>();
+                properties.put("id", Property.of(p -> p.keyword(k -> k)));
+                properties.put("projectId", Property.of(p -> p.keyword(k -> k)));
+                properties.put("tenantId", Property.of(p -> p.keyword(k -> k)));
+                properties.put("level", Property.of(p -> p.keyword(k -> k)));
+                properties.put("logger", Property.of(p -> p.keyword(k -> k)));
+                properties.put("message", Property.of(p -> p.text(tx -> tx.analyzer("standard"))));
+                properties.put("stackTrace", Property.of(p -> p.text(tx -> tx)));
+                properties.put("exceptionClass", Property.of(p -> p.keyword(k -> k)));
+                properties.put("fingerprint", Property.of(p -> p.keyword(k -> k)));
+                properties.put("threadName", Property.of(p -> p.keyword(k -> k)));
+                properties.put("metadata", Property.of(p -> p.flattened(f -> f)));
+                properties.put("timestamp", Property.of(p -> p.date(d -> d.format("epoch_millis"))));
+                properties.put("traceId", Property.of(p -> p.keyword(k -> k)));
+                properties.put("spanId", Property.of(p -> p.keyword(k -> k)));
+                properties.put("parentSpanId", Property.of(p -> p.keyword(k -> k)));
+                properties.put("serviceName", Property.of(p -> p.keyword(k -> k)));
+                properties.put("hostName", Property.of(p -> p.keyword(k -> k)));
+                properties.put("environment", Property.of(p -> p.keyword(k -> k)));
+
                 elasticsearchClient.indices().putIndexTemplate(PutIndexTemplateRequest.of(r -> r
                     .name("loghealer-logs-template")
                     .indexPatterns("loghealer-logs-*")
-                    .priority(100)
+                    .priority(100L)
                     .template(IndexTemplateMapping.of(t -> t
-                        .mappings(TypeMapping.of(m -> m
-                            .properties(Map.of(
-                                "id", Property.of(p -> p.keyword(k -> k)),
-                                "projectId", Property.of(p -> p.keyword(k -> k)),
-                                "tenantId", Property.of(p -> p.keyword(k -> k)),
-                                "level", Property.of(p -> p.keyword(k -> k)),
-                                "logger", Property.of(p -> p.keyword(k -> k)),
-                                "message", Property.of(p -> p.text(tx -> tx.analyzer("standard"))),
-                                "stackTrace", Property.of(p -> p.text(tx -> tx)),
-                                "exceptionClass", Property.of(p -> p.keyword(k -> k)),
-                                "fingerprint", Property.of(p -> p.keyword(k -> k)),
-                                "threadName", Property.of(p -> p.keyword(k -> k)),
-                                "metadata", Property.of(p -> p.flattened(f -> f)),
-                                "timestamp", Property.of(p -> p.date(d -> d.format("epoch_millis"))),
-                                "traceId", Property.of(p -> p.keyword(k -> k)),
-                                "spanId", Property.of(p -> p.keyword(k -> k)),
-                                "parentSpanId", Property.of(p -> p.keyword(k -> k)),
-                                "serviceName", Property.of(p -> p.keyword(k -> k)),
-                                "hostName", Property.of(p -> p.keyword(k -> k)),
-                                "environment", Property.of(p -> p.keyword(k -> k))
-                            ))
-                        ))
+                        .mappings(TypeMapping.of(m -> m.properties(properties)))
                     ))
                 ));
                 log.info("Created index template: loghealer-logs-template");
