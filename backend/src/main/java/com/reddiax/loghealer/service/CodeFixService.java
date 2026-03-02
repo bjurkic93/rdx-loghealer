@@ -468,7 +468,7 @@ public class CodeFixService {
                 requestBody.put("tools", tools);
 
                 String response = claudeWebClient.post()
-                        .uri("/v1/messages")
+                        .uri("/messages")
                         .header("x-api-key", claudeApiKey)
                         .header("anthropic-version", "2023-06-01")
                         .bodyValue(requestBody)
