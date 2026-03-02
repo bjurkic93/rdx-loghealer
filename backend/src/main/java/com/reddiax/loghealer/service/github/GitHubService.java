@@ -354,11 +354,13 @@ public class GitHubService {
             JsonNode repos = objectMapper.readTree(response);
             List<Map<String, String>> result = new ArrayList<>();
             for (JsonNode repo : repos) {
+                String fullName = repo.path("full_name").asText();
                 result.add(Map.of(
-                        "fullName", repo.path("full_name").asText(),
+                        "fullName", fullName,
                         "name", repo.path("name").asText(),
                         "private", String.valueOf(repo.path("private").asBoolean()),
-                        "defaultBranch", repo.path("default_branch").asText("main")
+                        "defaultBranch", repo.path("default_branch").asText("main"),
+                        "htmlUrl", "https://github.com/" + fullName
                 ));
             }
             return result;
