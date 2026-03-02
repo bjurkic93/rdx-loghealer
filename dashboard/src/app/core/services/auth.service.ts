@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { BehaviorSubject, Observable, of, throwError, ReplaySubject } from 'rxjs';
-import { tap, catchError, map, first } from 'rxjs/operators';
+import { tap, catchError, map, first, switchMap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { User, TokenResponse, isSuperAdmin } from '../models';
 
@@ -121,10 +121,19 @@ export class AuthService {
         })
       }
     ).pipe(
-      tap(tokens => this.storeTokens(tokens)),
+      tap(tokens => {
+        localStorage.setItem('access_token', tokens.access_token);
+        if (tokens.refresh_token) {
+          localStorage.setItem('refresh_token', tokens.refresh_token);
+        }
+      }),
+      switchMap(() => this.fetchUserInfo()),
+      tap(() => this.authReadySubject.next(true)),
       map(() => true),
       catchError(err => {
         console.error('Token exchange failed:', err);
+        this.clearTokens();
+        this.authReadySubject.next(false);
         return of(false);
       })
     );
@@ -135,7 +144,6 @@ export class AuthService {
     if (tokens.refresh_token) {
       localStorage.setItem('refresh_token', tokens.refresh_token);
     }
-    this.fetchUserInfo().subscribe();
   }
 
   fetchUserInfo(): Observable<User> {
