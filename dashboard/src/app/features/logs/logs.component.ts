@@ -1,14 +1,14 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { ApiService } from '../../core/services/api.service';
 import { LogEntry, LogSearchRequest } from '../../core/models/log.model';
 
 @Component({
   selector: 'app-logs',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, RouterLink],
   templateUrl: './logs.component.html',
   styleUrl: './logs.component.scss'
 })
