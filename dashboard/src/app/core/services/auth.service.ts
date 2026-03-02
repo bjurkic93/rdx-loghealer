@@ -151,6 +151,7 @@ export class AuthService {
       headers: this.getAuthHeaders()
     }).pipe(
       tap(user => {
+        console.log('Raw user info from server:', user);
         const mappedUser: User = {
           id: (user as any).sub || (user as any).id,
           email: user.email,
@@ -158,12 +159,8 @@ export class AuthService {
           lastName: (user as any).family_name || user.lastName,
           roles: (user as any).roles || []
         };
+        console.log('Mapped user:', mappedUser);
         this.currentUserSubject.next(mappedUser);
-        
-        if (!isSuperAdmin(mappedUser)) {
-          this.logout();
-          alert('Pristup dozvoljen samo SUPER_ADMIN korisnicima');
-        }
       }),
       catchError(err => {
         console.error('Failed to fetch user info:', err);
