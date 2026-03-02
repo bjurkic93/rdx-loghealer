@@ -120,7 +120,11 @@ public class TraceService {
 
     private List<LogEntryDocument> searchByTraceId(String traceId, List<String> projectIds) throws IOException {
         BoolQuery.Builder boolQuery = new BoolQuery.Builder();
-        boolQuery.must(m -> m.term(t -> t.field("traceId").value(traceId)));
+        boolQuery.must(m -> m.bool(b -> b
+            .should(s -> s.term(t -> t.field("traceId").value(traceId)))
+            .should(s -> s.term(t -> t.field("traceId.keyword").value(traceId)))
+            .minimumShouldMatch("1")
+        ));
 
         if (projectIds != null && !projectIds.isEmpty()) {
             boolQuery.filter(f -> f.terms(t -> t
@@ -147,8 +151,16 @@ public class TraceService {
 
     private List<LogEntryDocument> searchByTraceIdAndProject(String traceId, String projectId) throws IOException {
         BoolQuery.Builder boolQuery = new BoolQuery.Builder();
-        boolQuery.must(m -> m.term(t -> t.field("traceId").value(traceId)));
-        boolQuery.filter(f -> f.term(t -> t.field("projectId").value(projectId)));
+        boolQuery.must(m -> m.bool(b -> b
+            .should(s -> s.term(t -> t.field("traceId").value(traceId)))
+            .should(s -> s.term(t -> t.field("traceId.keyword").value(traceId)))
+            .minimumShouldMatch("1")
+        ));
+        boolQuery.filter(f -> f.bool(b -> b
+            .should(s -> s.term(t -> t.field("projectId").value(projectId)))
+            .should(s -> s.term(t -> t.field("projectId.keyword").value(projectId)))
+            .minimumShouldMatch("1")
+        ));
 
         SearchResponse<LogEntryDocument> response = elasticsearchClient.search(s -> s
                 .index(LOG_INDEX_PATTERN)
