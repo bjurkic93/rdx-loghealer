@@ -35,10 +35,10 @@ public class CodeFixService {
     private final GitHubService gitHubService;
     private final ObjectMapper objectMapper;
 
-    @Value("${ai.claude.api-key:}")
+    @Value("${loghealer.ai.claude.api-key:}")
     private String claudeApiKey;
 
-    @Value("${ai.claude.model:claude-sonnet-4-20250514}")
+    @Value("${loghealer.ai.claude.model:claude-sonnet-4-20250514}")
     private String claudeModel;
 
     private final WebClient claudeWebClient;
