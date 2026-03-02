@@ -41,7 +41,12 @@ public class CursorAgentService {
             .build();
 
     public CursorAgentResponse launchFixAgent(ExceptionGroupDocument exception, Project project) {
+        log.info("launchFixAgent called - API key present: {}, API key length: {}", 
+                cursorApiKey != null && !cursorApiKey.isEmpty(), 
+                cursorApiKey != null ? cursorApiKey.length() : 0);
+        
         if (cursorApiKey == null || cursorApiKey.isEmpty()) {
+            log.warn("Cursor API key is not configured");
             return CursorAgentResponse.builder()
                     .status("ERROR")
                     .message("Cursor API key not configured")
@@ -49,6 +54,7 @@ public class CursorAgentService {
         }
 
         if (project.getRepoUrl() == null || project.getRepoUrl().isEmpty()) {
+            log.warn("Project {} has no repo URL", project.getId());
             return CursorAgentResponse.builder()
                     .status("ERROR")
                     .message("Project has no GitHub repository configured")
@@ -78,8 +84,9 @@ public class CursorAgentService {
                 ));
             }
 
-            log.info("Launching Cursor agent for exception {} on repo {}", 
-                    exception.getId(), project.getRepoUrl());
+            log.info("Launching Cursor agent for exception {} on repo {}, branch {}", 
+                    exception.getId(), project.getRepoUrl(), project.getDefaultBranch());
+            log.debug("Request body: {}", requestBody);
 
             String response = cursorWebClient.post()
                     .uri("/v0/agents")
@@ -117,8 +124,14 @@ public class CursorAgentService {
                     .message("Agent launched successfully. It will analyze the code and create a PR.")
                     .build();
 
+        } catch (org.springframework.web.reactive.function.client.WebClientResponseException e) {
+            log.error("Cursor API error: {} - {}", e.getStatusCode(), e.getResponseBodyAsString());
+            return CursorAgentResponse.builder()
+                    .status("ERROR")
+                    .message("Cursor API error: " + e.getStatusCode() + " - " + e.getResponseBodyAsString())
+                    .build();
         } catch (Exception e) {
-            log.error("Failed to launch Cursor agent", e);
+            log.error("Failed to launch Cursor agent: {}", e.getMessage(), e);
             return CursorAgentResponse.builder()
                     .status("ERROR")
                     .message("Failed to launch agent: " + e.getMessage())
