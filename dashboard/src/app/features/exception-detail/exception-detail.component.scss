@@ -97,10 +97,10 @@
   font-family: 'SF Mono', Monaco, monospace;
   font-size: 13px;
   color: #f85149;
-  overflow-x: auto;
-  white-space: pre-wrap;
-  word-break: break-word;
+  overflow: auto;
+  white-space: pre;
   line-height: 1.6;
+  max-height: 400px;
 }
 
 .info-section {
