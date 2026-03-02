@@ -23,7 +23,17 @@ export class AuthService {
   private loadStoredUser(): void {
     const token = localStorage.getItem('access_token');
     if (token) {
-      this.fetchUserInfo().subscribe();
+      this.fetchUserInfo().subscribe({
+        error: () => {
+          const refreshToken = localStorage.getItem('refresh_token');
+          if (refreshToken) {
+            this.refreshToken().subscribe({
+              next: () => this.fetchUserInfo().subscribe(),
+              error: () => this.logout()
+            });
+          }
+        }
+      });
     }
   }
 
@@ -121,7 +131,6 @@ export class AuthService {
       }),
       catchError(err => {
         console.error('Failed to fetch user info:', err);
-        this.logout();
         return throwError(() => err);
       })
     );
