@@ -164,6 +164,7 @@
     font-size: 13px;
     color: #8b949e;
     font-family: 'SF Mono', Monaco, monospace;
+    flex-shrink: 0;
   }
 
   .project-badge {
@@ -173,6 +174,7 @@
     background: rgba(56, 139, 253, 0.15);
     color: #58a6ff;
     font-weight: 500;
+    flex-shrink: 0;
   }
 
   .trace-id-display {
@@ -182,10 +184,22 @@
     background: rgba(163, 113, 247, 0.15);
     color: #a371f7;
     font-family: 'SF Mono', Monaco, monospace;
+    flex-shrink: 0;
+  }
+
+  .logger {
+    font-size: 13px;
+    color: #6e7681;
+    font-family: 'SF Mono', Monaco, monospace;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
   }
 
   .view-trace-btn {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
     font-size: 11px;
     padding: 4px 12px;
     border-radius: 4px;
@@ -194,19 +208,13 @@
     text-decoration: none;
     font-weight: 500;
     margin-left: auto;
-    position: relative;
-    z-index: 100;
+    flex-shrink: 0;
+    white-space: nowrap;
 
     &:hover {
       background: #2ea043;
       color: #fff;
     }
-  }
-
-  .logger {
-    font-size: 13px;
-    color: #6e7681;
-    font-family: 'SF Mono', Monaco, monospace;
   }
 }
 
